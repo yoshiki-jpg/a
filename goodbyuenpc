@@ -1,0 +1,71 @@
+local function cleanupNPCs()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    
+    -- List of NPC names to preserve
+    local preserveNames = {
+        ["Shalltear"] = true,
+        ["David"] = true
+    }
+    
+    -- Function to check if an instance is likely an NPC
+    local function isNPC(instance)
+        -- Common indicators of NPCs
+        return (
+            instance:IsA("Model") and
+            instance:FindFirstChild("Humanoid") and
+            instance:FindFirstChild("HumanoidRootPart")
+        )
+    end
+    
+    -- Function to process NPCs
+    local function processNPCs(parent)
+        local npcsFound = 0
+        local npcsRemoved = 0
+        
+        -- Search through all descendants
+        for _, instance in ipairs(parent:GetDescendants()) do
+            if isNPC(instance) then
+                -- Skip if this is the LocalPlayer's character
+                if LocalPlayer and instance == LocalPlayer.Character then
+                    print("Skipping LocalPlayer character")
+                    continue
+                end
+                
+                npcsFound = npcsFound + 1
+                
+                -- Check if this NPC should be preserved
+                local name = instance.Name
+                if preserveNames[name] then
+                    print("Preserving NPC: " .. name)
+                else
+                    print("Removing NPC: " .. name)
+                    instance:Destroy()
+                    npcsRemoved = npcsRemoved + 1
+                end
+            end
+        end
+        
+        return npcsFound, npcsRemoved
+    end
+    
+    -- Process the entire game
+    local totalFound, totalRemoved = processNPCs(game)
+    
+    -- Print summary
+    print("=== NPC Cleanup Summary ===")
+    print("Total NPCs found: " .. totalFound)
+    print("NPCs removed: " .. totalRemoved)
+    print("NPCs preserved: " .. (totalFound - totalRemoved))
+    print("LocalPlayer was automatically preserved")
+    print("========================")
+end
+
+-- Run the cleanup with error handling
+local success, error = pcall(function()
+    cleanupNPCs()
+end)
+
+if not success then
+    print("Error during cleanup: " .. tostring(error))
+end
