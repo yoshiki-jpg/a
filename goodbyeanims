@@ -1,0 +1,62 @@
+local function cleanupAnimations()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    
+    -- Function to process a single instance
+    local function processInstance(instance)
+        -- Create a list to store found animations
+        local foundAnimations = {}
+        
+        -- Skip if this is part of LocalPlayer or their character
+        if LocalPlayer then
+            if instance == LocalPlayer or 
+               instance == LocalPlayer.Character or 
+               (LocalPlayer.Character and instance:IsDescendantOf(LocalPlayer.Character)) then
+                return foundAnimations
+            end
+        end
+        
+        -- Check if the instance is an Animation or AnimationTrack
+        if instance:IsA("Animation") or instance:IsA("AnimationTrack") then
+            table.insert(foundAnimations, instance)
+        end
+        
+        -- Process children recursively
+        for _, child in ipairs(instance:GetChildren()) do
+            local childAnimations = processInstance(child)
+            for _, animation in ipairs(childAnimations) do
+                table.insert(foundAnimations, animation)
+            end
+        end
+        
+        return foundAnimations
+    end
+    
+    -- Get all animations in the game
+    local animations = processInstance(game)
+    
+    -- Print info about found animations
+    print("Found " .. #animations .. " animations (excluding LocalPlayer)")
+    
+    -- Ask for confirmation before removing
+    local shouldRemove = true  -- Set this to true to enable removal
+    
+    if shouldRemove then
+        for _, animation in ipairs(animations) do
+            print("Removing animation: " .. animation:GetFullName())
+            animation:Destroy()
+        end
+        print("Removed " .. #animations .. " animations")
+    else
+        print("Preview mode - no animations were removed")
+        print("To remove animations, set shouldRemove to true")
+        
+        -- Print list of found animations
+        for _, animation in ipairs(animations) do
+            print("Found animation: " .. animation:GetFullName())
+        end
+    end
+end
+
+-- Run the cleanup function
+cleanupAnimations()
