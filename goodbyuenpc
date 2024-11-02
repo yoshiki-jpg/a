@@ -8,9 +8,8 @@ local function cleanupNPCs()
         ["David"] = true
     }
     
-    -- Function to check if an instance is likely an NPC
+    -- Function to check if an instance is likely an NPC (Model method)
     local function isNPC(instance)
-        -- Common indicators of NPCs
         return (
             instance:IsA("Model") and
             instance:FindFirstChild("Humanoid") and
@@ -18,14 +17,26 @@ local function cleanupNPCs()
         )
     end
     
+    -- Function to get the top level NPC model from a Humanoid
+    local function getNPCModelFromHumanoid(humanoid)
+        local parent = humanoid.Parent
+        if parent and parent:IsA("Model") then
+            return parent
+        end
+        return nil
+    end
+    
     -- Function to process NPCs
     local function processNPCs(parent)
         local npcsFound = 0
         local npcsRemoved = 0
+        local processedModels = {} -- To prevent duplicate processing
         
-        -- Search through all descendants
+        -- First pass: Find NPCs using traditional method (Model with Humanoid)
         for _, instance in ipairs(parent:GetDescendants()) do
             if isNPC(instance) then
+                processedModels[instance] = true
+                
                 -- Skip if this is the LocalPlayer's character
                 if LocalPlayer and instance == LocalPlayer.Character then
                     print("Skipping LocalPlayer character")
@@ -37,10 +48,41 @@ local function cleanupNPCs()
                 -- Check if this NPC should be preserved
                 local name = instance.Name
                 if preserveNames[name] then
-                    print("Preserving NPC: " .. name)
+                    print("Preserving NPC (Model check): " .. name)
                 else
-                    print("Removing NPC: " .. name)
+                    print("Removing NPC (Model check): " .. name)
                     instance:Destroy()
+                    npcsRemoved = npcsRemoved + 1
+                end
+            end
+        end
+        
+        -- Second pass: Find any remaining Humanoids
+        for _, instance in ipairs(parent:GetDescendants()) do
+            if instance:IsA("Humanoid") then
+                local npcModel = getNPCModelFromHumanoid(instance)
+                
+                -- Skip if we've already processed this model or if it's been deleted
+                if not npcModel or processedModels[npcModel] or not npcModel.Parent then
+                    continue
+                end
+                
+                -- Skip if this is the LocalPlayer's character
+                if LocalPlayer and npcModel == LocalPlayer.Character then
+                    print("Skipping LocalPlayer character (Humanoid check)")
+                    continue
+                end
+                
+                npcsFound = npcsFound + 1
+                processedModels[npcModel] = true
+                
+                -- Check if this NPC should be preserved
+                local name = npcModel.Name
+                if preserveNames[name] then
+                    print("Preserving NPC (Humanoid check): " .. name)
+                else
+                    print("Removing NPC (Humanoid check): " .. name)
+                    npcModel:Destroy()
                     npcsRemoved = npcsRemoved + 1
                 end
             end
