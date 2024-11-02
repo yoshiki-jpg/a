@@ -1,0 +1,158 @@
+local function modifyAllDialogue()
+    -- Services
+    local Players = game:GetService("Players")
+    
+    -- Settings
+    local INSTANT_MODE = true  -- Set to true for instant dialogue, false for speed up
+    local SPEED_MULTIPLIER = 10 -- How much faster dialogue should be if not instant
+    
+    -- Helper Functions
+    local function modifyWait()
+        local oldWait = wait
+        wait = function(t)
+            if t then
+                return oldWait(0)
+            end
+            return oldWait()
+        end
+    end
+    
+    local function modifyFunction(instance)
+        if instance:IsA("TextLabel") or instance:IsA("TextBox") or instance:IsA("TextButton") then
+            for _, prop in pairs(instance:GetProperties()) do
+                if typeof(instance[prop]) == "number" and 
+                   (string.match(prop:lower(), "speed") or 
+                    string.match(prop:lower(), "delay") or 
+                    string.match(prop:lower(), "duration")) then
+                    
+                    pcall(function()
+                        instance[prop] = INSTANT_MODE and 0 or (instance[prop] / SPEED_MULTIPLIER)
+                    end)
+                end
+            end
+            
+            -- Force text to appear instantly if in INSTANT_MODE
+            if INSTANT_MODE then
+                if instance:FindFirstChild("Text") then
+                    instance.Text = instance.Text
+                end
+            end
+        end
+        
+        -- Modify any ModuleScripts that might contain dialogue data
+        if instance:IsA("ModuleScript") then
+            pcall(function()
+                local module = require(instance)
+                if type(module) == "table" then
+                    for key, value in pairs(module) do
+                        if type(value) == "number" and 
+                           (string.match(key:lower(), "speed") or 
+                            string.match(key:lower(), "delay") or 
+                            string.match(key:lower(), "duration")) then
+                            module[key] = INSTANT_MODE and 0 or (value / SPEED_MULTIPLIER)
+                        end
+                    end
+                end
+            end)
+        end
+        
+        -- Handle scripts
+        if instance:IsA("LocalScript") or instance:IsA("Script") then
+            pcall(function()
+                local env = getsenv(instance)
+                env.wait = function() return end
+                env.Wait = function() return end
+                env.delay = function() return end
+                env.Delay = function() return end
+            end)
+        end
+        
+        -- Handle attributes
+        for _, attr in pairs(instance:GetAttributes()) do
+            if type(attr) == "number" then
+                pcall(function()
+                    instance:SetAttribute(attr, INSTANT_MODE and 0 or (attr / SPEED_MULTIPLIER))
+                end)
+            end
+        end
+    end
+    
+    -- Find and modify all dialogue UI
+    local function findDialogueUI()
+        for _, obj in pairs(game:GetDescendants()) do
+            -- Skip player GUI
+            local player = Players.LocalPlayer
+            if player and obj:IsDescendantOf(player.PlayerGui) then
+                continue
+            end
+            
+            -- Process everything else
+            modifyFunction(obj)
+            
+            -- Additional checks for specific dialogue systems
+            if obj.Name:lower():match("dialog") or 
+               obj.Name:lower():match("chat") or 
+               obj.Name:lower():match("text") or 
+               obj.Name:lower():match("message") then
+                
+                -- Try to disable any dialogue system we find
+                pcall(function()
+                    if obj:IsA("Dialog") then
+                        obj.InitialFocus = false
+                        obj.InUse = false
+                    elseif obj:IsA("ScreenGui") then
+                        obj.Enabled = false
+                    elseif obj:IsA("Script") or obj:IsA("LocalScript") then
+                        obj.Disabled = true
+                    end
+                end)
+            end
+        end
+    end
+    
+    -- Override default wait functions
+    modifyWait()
+    
+    -- Initial modification
+    findDialogueUI()
+    
+    -- Watch for new objects
+    game.DescendantAdded:Connect(function(obj)
+        -- Skip player GUI
+        local player = Players.LocalPlayer
+        if player and obj:IsDescendantOf(player.PlayerGui) then
+            return
+        end
+        
+        modifyFunction(obj)
+    end)
+    
+    -- Hook into common dialogue events
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("BindableEvent") or obj:IsA("RemoteEvent") then
+            if obj.Name:lower():match("dialog") or 
+               obj.Name:lower():match("chat") or 
+               obj.Name:lower():match("text") then
+                
+                pcall(function()
+                    obj.Event:Connect(function()
+                        if INSTANT_MODE then
+                            return
+                        end
+                    end)
+                end)
+            end
+        end
+    end
+    
+    print(INSTANT_MODE and "Dialogue skip enabled" or "Dialogue speed increased by " .. SPEED_MULTIPLIER .. "x")
+end
+
+-- Run with error handling
+local success, error = pcall(function()
+    modifyAllDialogue()
+end)
+
+if not success then
+    warn("Error in dialogue modifier:", error)
+end
