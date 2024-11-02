@@ -1,0 +1,168 @@
+local function modifyReplicatedDialogue()
+    -- Services
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    
+    -- Configuration
+    local SKIP_DIALOGUE = true  -- Set to true to skip dialogue entirely
+    local TEXT_SPEED_MULTIPLIER = 5  -- Only used if SKIP_DIALOGUE is false
+    
+    -- Common dialogue/text UI classes
+    local textClasses = {
+        ["TextLabel"] = true,
+        ["TextBox"] = true,
+        ["TextButton"] = true,
+        ["Dialog"] = true,
+        ["Message"] = true
+    }
+    
+    -- Common dialogue system names/patterns
+    local dialoguePatterns = {
+        "dialog",
+        "conversation",
+        "text",
+        "chat",
+        "message",
+        "talk"
+    }
+    
+    -- Function to modify values in a table (for dialogue configuration)
+    local function modifyTableValues(t)
+        for key, value in pairs(t) do
+            -- Look for common timing-related keys
+            if type(key) == "string" and
+               (key:lower():match("speed") or 
+                key:lower():match("delay") or 
+                key:lower():match("duration") or 
+                key:lower():match("interval")) then
+                
+                if type(value) == "number" then
+                    if SKIP_DIALOGUE then
+                        t[key] = 0
+                    else
+                        t[key] = value / TEXT_SPEED_MULTIPLIER
+                    end
+                end
+            end
+            
+            -- Recursively check nested tables
+            if type(value) == "table" then
+                modifyTableValues(value)
+            end
+        end
+    end
+    
+    -- Function to process ModuleScripts
+    local function processModule(moduleScript)
+        local success, moduleContent = pcall(function()
+            return require(moduleScript)
+        end)
+        
+        if success and type(moduleContent) == "table" then
+            -- Look for dialogue configuration
+            if moduleContent.DialogueData or 
+               moduleContent.Dialogue or 
+               moduleContent.DialogSettings or 
+               moduleContent.TextSpeed then
+                
+                print("Found dialogue module:", moduleScript:GetFullName())
+                modifyTableValues(moduleContent)
+                
+                -- Attempt to modify the module directly
+                if SKIP_DIALOGUE then
+                    -- Try to override the module's return value
+                    local originalModule = require(moduleScript)
+                    if type(originalModule) == "table" then
+                        for key, _ in pairs(originalModule) do
+                            if type(originalModule[key]) == "number" then
+                                originalModule[key] = 0
+                            elseif type(originalModule[key]) == "table" then
+                                modifyTableValues(originalModule[key])
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Function to find and process dialogue-related instances
+    local function processInstance(instance)
+        -- Check if it's a dialogue-related instance by name
+        local isDialogueRelated = false
+        local lowerName = instance.Name:lower()
+        for _, pattern in ipairs(dialoguePatterns) do
+            if lowerName:match(pattern) then
+                isDialogueRelated = true
+                break
+            end
+        end
+        
+        if isDialogueRelated then
+            print("Found dialogue instance:", instance:GetFullName())
+            
+            -- Handle different types of instances
+            if instance:IsA("ModuleScript") then
+                processModule(instance)
+            elseif instance:IsA("NumberValue") then
+                if SKIP_DIALOGUE then
+                    instance.Value = 0
+                else
+                    instance.Value = instance.Value / TEXT_SPEED_MULTIPLIER
+                end
+            elseif textClasses[instance.ClassName] then
+                if SKIP_DIALOGUE then
+                    instance.TextSpeed = 0
+                    instance.TextTransparency = 1
+                else
+                    if instance:FindFirstChild("TextSpeed") then
+                        instance.TextSpeed = instance.TextSpeed / TEXT_SPEED_MULTIPLIER
+                    end
+                end
+            end
+            
+            -- Modify any relevant attributes
+            for _, attrName in ipairs(instance:GetAttributes()) do
+                local attrValue = instance:GetAttribute(attrName)
+                if type(attrValue) == "number" and 
+                   (attrName:lower():match("speed") or 
+                    attrName:lower():match("delay") or 
+                    attrName:lower():match("duration")) then
+                    
+                    if SKIP_DIALOGUE then
+                        instance:SetAttribute(attrName, 0)
+                    else
+                        instance:SetAttribute(attrName, attrValue / TEXT_SPEED_MULTIPLIER)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Process all instances in ReplicatedStorage
+    print("Searching for dialogue systems in ReplicatedStorage...")
+    for _, instance in ipairs(ReplicatedStorage:GetDescendants()) do
+        processInstance(instance)
+    end
+    
+    -- Watch for new instances
+    ReplicatedStorage.DescendantAdded:Connect(function(instance)
+        processInstance(instance)
+    end)
+    
+    print("ReplicatedStorage dialogue modification complete!")
+    if SKIP_DIALOGUE then
+        print("Dialogue skip enabled")
+    else
+        print("Dialogue speed increased by " .. TEXT_SPEED_MULTIPLIER .. "x")
+    end
+end
+
+-- Run with error handling
+local success, error = pcall(function()
+    modifyReplicatedDialogue()
+end)
+
+if not success then
+    print("Error while modifying dialogue: " .. tostring(error))
+end
