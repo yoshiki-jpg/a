@@ -1,0 +1,11 @@
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+
+local gameid = {
+    [18138547215] = "https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/nuhuh.txt"
+}
+
+if gameid[game.PlaceId] then
+    loadstring(game:HttpGet(gameid[game.PlaceId]))()
+else
+    warn("This game is not supported (TatsumakiHub)")
+end
