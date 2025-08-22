@@ -1,3 +1,7 @@
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
 -- Define Groups with both Names and UserIds
 local MAIN_GROUP = {
     Leader = {Name = "3malaysians", UserId = 9247717801},
@@ -239,3 +243,4 @@ elseif placeId == 138059541435332 then
         safeTeleport(18637069183)
     end
 end
+
