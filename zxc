@@ -5,11 +5,11 @@ local TeleportService = game:GetService("TeleportService")
 
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "thelancewavers", UserId = 9199773198},
+    Leader = {Name = "3malaysians", UserId = 9247717801},
     Members = {
-        {Name = "setyourreroll", UserId = 9199762283},
-        {Name = "influxofemotions", UserId = 9199707476},
-        {Name = "mylifewavers", UserId = 9198864668},
+        {Name = "3ramlyborigar", UserId = 9252243951},
+        {Name = "3mcdoharris", UserId = 9252259406},
+        {Name = "3familialhamly", UserId = 9252229000},
     }
 }
 
@@ -23,7 +23,7 @@ local FARM_GROUP = {
 }
 
 local ALL_ACCOUNTS = {
-    9199773198, 9199762283, 9199707476, 9198864668, 9251688294, 9252971862, 9253020411, 9253013396
+    9247717801, 9252243951, 9252259406, 9252229000, 9251688294, 9252971862, 9253020411, 9253013396
 }
 
 local PLACE_MAIN = 14067600077
@@ -194,8 +194,10 @@ end
 
 local function verifyParties()
     local partyIds = getPartyMemberIds()
+    print("[VERIFY DEBUG] Found party member IDs:", table.concat(partyIds, ", "))
     
     if #partyIds == 0 then 
+        print("[VERIFY DEBUG] No party members found")
         return false 
     end
     
@@ -209,16 +211,22 @@ local function verifyParties()
         elseif group == "FARM" then
             farmCount = farmCount + 1
         else
+            print("[VERIFY DEBUG] Invalid member found:", userId)
             return false
         end
     end
     
+    print("[VERIFY DEBUG] Party composition - MAIN:", mainCount, "FARM:", farmCount)
+    
     local isValid = false
     if isMainGroupMember() then
         isValid = mainCount == 4 and farmCount == 0
+        print("[VERIFY DEBUG] Main group check - valid:", isValid, "(expected 4 MAIN, 0 FARM)")
     elseif isFarmGroupMember() then
         isValid = farmCount == 4 and mainCount == 0
+        print("[VERIFY DEBUG] Farm group check - valid:", isValid, "(expected 0 MAIN, 4 FARM)")
     else
+        print("[VERIFY DEBUG] Current player not in any group!")
         return false
     end
     
@@ -303,11 +311,27 @@ local function acceptInvites()
 end
 
 local function startQueue()
+    print("[QUEUE DEBUG] Checking if player should start queue...")
+    print("[QUEUE DEBUG] Current player ID:", localPlayer.UserId)
+    print("[QUEUE DEBUG] Main leader ID:", MAIN_GROUP.Leader.UserId)
+    print("[QUEUE DEBUG] Farm leader ID:", FARM_GROUP.Leader.UserId)
+    
     if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
-        pcall(function()
+        print("[QUEUE DEBUG] Player is a leader, attempting to start queue...")
+        
+        local success, error = pcall(function()
+            print("[QUEUE DEBUG] Accessing ReplicatedStorage.Remotes.Team...")
             local args = {"JoinQueue", "CASCADE"}
+            print("[QUEUE DEBUG] Firing server with args:", unpack(args))
             ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            print("[QUEUE DEBUG] Queue request sent successfully!")
         end)
+        
+        if not success then
+            print("[QUEUE DEBUG] ERROR starting queue:", error)
+        end
+    else
+        print("[QUEUE DEBUG] Player is not a leader, skipping queue start")
     end
 end
 
@@ -378,7 +402,9 @@ local function runPartyManager()
                         task.wait(2)
                         
                         if verifyParties() then
+                            print("[MAIN DEBUG] Party verification successful! Starting queue...")
                             startQueue()
+                            print("[MAIN DEBUG] Queue started, waiting for game teleport...")
                             return
                         else
                             leaveParty()
