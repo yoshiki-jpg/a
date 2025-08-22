@@ -5,11 +5,11 @@ local TeleportService = game:GetService("TeleportService")
 
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "3malaysians", UserId = 9247717801},
+    Leader = {Name = "thelancewavers", UserId = 9199773198},
     Members = {
-        {Name = "3ramlyborigar", UserId = 9252243951},
-        {Name = "3mcdoharris", UserId = 9252259406},
-        {Name = "3familialhamly", UserId = 9252229000},
+        {Name = "setyourreroll", UserId = 9199762283},
+        {Name = "influxofemotions", UserId = 9199707476},
+        {Name = "mylifewavers", UserId = 9198864668},
     }
 }
 
@@ -23,7 +23,7 @@ local FARM_GROUP = {
 }
 
 local ALL_ACCOUNTS = {
-    9247717801, 9252243951, 9252259406, 9252229000, 9251688294, 9252971862, 9253020411, 9253013396
+    9199773198, 9199762283, 9199707476, 9198864668, 9251688294, 9252971862, 9253020411, 9253013396
 }
 
 local PLACE_MAIN = 14067600077
