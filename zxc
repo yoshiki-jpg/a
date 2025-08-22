@@ -1,0 +1,362 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+
+-- CONFIGURATION
+local MAIN_GROUP = {
+    Leader = {Name = "3malaysians", UserId = 9247717801},
+    Members = {
+        {Name = "3ramlyborigar", UserId = 9252243951},
+        {Name = "3mcdoharris", UserId = 9252259406},
+        {Name = "3familialhamly", UserId = 9252229000},
+    }
+}
+
+local FARM_GROUP = {
+    Leader = {Name = "nguy83748", UserId = 9251688294},
+    Members = {
+        {Name = "elar87482", UserId = 9252971862},
+        {Name = "reedfantastic04", UserId = 9253020411},
+        {Name = "abhgemgfd", UserId = 9253013396},
+    }
+}
+
+local ALL_ACCOUNTS = {
+    9247717801, 9252243951, 9252259406, 9252229000, 9251688294, 9252971862, 9253020411, 9253013396
+}
+
+local PLACE_MAIN = 14067600077
+local PLACE_MATCH = 18637069183
+local PLACE_CASCADE = 138059541435332
+
+local localPlayer = Players.LocalPlayer
+
+-- UTILITY FUNCTIONS
+local function waitForGameLoaded()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+end
+
+local function safeTeleport(placeId)
+    while true do
+        local success = pcall(function()
+            TeleportService:Teleport(placeId, localPlayer)
+        end)
+        if success then break end
+        task.wait(5)
+    end
+end
+
+local function allAccountsInServer()
+    local count = 0
+    for _, player in pairs(Players:GetPlayers()) do
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                count = count + 1
+                break
+            end
+        end
+    end
+    return count == #ALL_ACCOUNTS
+end
+
+local function waitForRemotesReady()
+    local ready = false
+    local attempts = 0
+    while not ready and attempts < 60 do -- 1 minute timeout
+        attempts = attempts + 1
+        ready = pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes", 1)
+            ReplicatedStorage.Remotes:WaitForChild("Team", 1)
+            return true
+        end)
+        if not ready then task.wait(1) end
+    end
+    return ready
+end
+
+local function waitForGuiReady()
+    local ready = false
+    local attempts = 0
+    while not ready and attempts < 60 do -- 1 minute timeout
+        attempts = attempts + 1
+        ready = pcall(function()
+            local playerGui = localPlayer:WaitForChild("PlayerGui", 1)
+            local menu = playerGui:WaitForChild("menu", 1)
+            local main = menu:WaitForChild("main", 1)
+            local sidebar = main:WaitForChild("sidebar", 1)
+            local party = sidebar:WaitForChild("party", 1)
+            local members = party:WaitForChild("members", 1)
+            
+            -- Additional check to make sure members frame is actually usable
+            if members and members.Parent then
+                return true
+            end
+            return false
+        end)
+        if not ready then task.wait(1) end
+    end
+    return ready
+end
+
+local function getPartyMemberIds()
+    local memberIds = {}
+    local success, result = pcall(function()
+        -- Wait for the members frame to exist
+        local playerGui = localPlayer.PlayerGui
+        if not playerGui:FindFirstChild("menu") then return {} end
+        
+        local menu = playerGui.menu
+        if not menu:FindFirstChild("main") then return {} end
+        
+        local main = menu.main  
+        if not main:FindFirstChild("sidebar") then return {} end
+        
+        local sidebar = main.sidebar
+        if not sidebar:FindFirstChild("party") then return {} end
+        
+        local party = sidebar.party
+        if not party:FindFirstChild("members") then return {} end
+        
+        local membersFrame = party.members
+        
+        -- Get all children and check if they're UserID frames
+        for _, child in pairs(membersFrame:GetChildren()) do
+            if child and child.Name then
+                local userId = tonumber(child.Name)
+                if userId and userId > 0 then -- Valid UserID
+                    table.insert(memberIds, userId)
+                end
+            end
+        end
+        
+        return memberIds
+    end)
+    
+    if success and result then
+        return result
+    else
+        return {}
+    end
+end
+
+local function isPlayerInCorrectGroup(userId)
+    -- Check if player belongs to MAIN_GROUP
+    if userId == MAIN_GROUP.Leader.UserId then return "MAIN" end
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if userId == member.UserId then return "MAIN" end
+    end
+    
+    -- Check if player belongs to FARM_GROUP
+    if userId == FARM_GROUP.Leader.UserId then return "FARM" end
+    for _, member in pairs(FARM_GROUP.Members) do
+        if userId == member.UserId then return "FARM" end
+    end
+    
+    return false
+end
+
+local function verifyParties()
+    local partyIds = getPartyMemberIds()
+    if #partyIds == 0 then return false end
+    
+    local mainCount = 0
+    local farmCount = 0
+    
+    for _, userId in pairs(partyIds) do
+        local group = isPlayerInCorrectGroup(userId)
+        if group == "MAIN" then
+            mainCount = mainCount + 1
+        elseif group == "FARM" then
+            farmCount = farmCount + 1
+        else
+            return false -- Someone who shouldn't be in party
+        end
+    end
+    
+    -- Check if we have complete groups (1 leader + 3 members each)
+    return mainCount == 4 and farmCount == 4
+end
+
+local function leaveParty()
+    pcall(function()
+        local args = {"Leave"}
+        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+    end)
+end
+
+local function inviteMembers()
+    if localPlayer.Name == MAIN_GROUP.Leader.Name then
+        for _, member in pairs(MAIN_GROUP.Members) do
+            for i = 1, 3 do
+                pcall(function()
+                    local targetPlayer = Players:FindFirstChild(member.Name)
+                    if targetPlayer then
+                        local args = {"Invite", targetPlayer}
+                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end
+    elseif localPlayer.Name == FARM_GROUP.Leader.Name then
+        for _, member in pairs(FARM_GROUP.Members) do
+            for i = 1, 3 do
+                pcall(function()
+                    local targetPlayer = Players:FindFirstChild(member.Name)
+                    if targetPlayer then
+                        local args = {"Invite", targetPlayer}
+                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end
+    end
+end
+
+local function acceptInvites()
+    local leaderName = nil
+    
+    -- Determine which leader to accept invite from
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if localPlayer.Name == member.Name then
+            leaderName = MAIN_GROUP.Leader.Name
+            break
+        end
+    end
+    
+    if not leaderName then
+        for _, member in pairs(FARM_GROUP.Members) do
+            if localPlayer.Name == member.Name then
+                leaderName = FARM_GROUP.Leader.Name
+                break
+            end
+        end
+    end
+    
+    if leaderName then
+        for i = 1, 3 do
+            pcall(function()
+                local leaderPlayer = Players:FindFirstChild(leaderName)
+                if leaderPlayer then
+                    local args = {"AcceptInvite", leaderPlayer}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end
+            end)
+            task.wait(0.5)
+        end
+    end
+end
+
+local function startQueue()
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
+        pcall(function()
+            local args = {"JoinQueue", "CASCADE"}
+            ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+        end)
+    end
+end
+
+local function isMainGroupMember()
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId then return true end
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if localPlayer.UserId == member.UserId then return true end
+    end
+    return false
+end
+
+local function isFarmGroupMember()
+    if localPlayer.UserId == FARM_GROUP.Leader.UserId then return true end
+    for _, member in pairs(FARM_GROUP.Members) do
+        if localPlayer.UserId == member.UserId then return true end
+    end
+    return false
+end
+
+-- MAIN EXECUTION
+local function runPartyManager()
+    waitForGameLoaded()
+    
+    -- 5 minute timeout for being stuck in match place
+    local matchStartTime = tick()
+    
+    while true do
+        if game.PlaceId == PLACE_MAIN then
+            safeTeleport(PLACE_MATCH)
+            
+        elseif game.PlaceId == PLACE_MATCH then
+            -- Wait 10 seconds before first check
+            task.wait(10)
+            
+            -- Keep checking for all accounts until present or timeout
+            while not allAccountsInServer() do
+                -- Check 5 minute timeout
+                if tick() - matchStartTime > 300 then -- 5 minutes
+                    safeTeleport(PLACE_MATCH)
+                    matchStartTime = tick()
+                    break -- exit to restart cycle
+                end
+                task.wait(15) -- check every 15 seconds
+            end
+            
+            -- Only proceed if all accounts are present and remotes/GUI are ready
+            if allAccountsInServer() and waitForRemotesReady() and waitForGuiReady() then
+                
+                -- Party formation loop with timeout protection
+                local partyStartTime = tick()
+                while true do
+                    -- Check for party formation timeout (3 minutes)
+                    if tick() - partyStartTime > 180 then
+                        leaveParty()
+                        task.wait(2)
+                        break -- restart the whole process
+                    end
+                    
+                    -- Invite phase
+                    inviteMembers()
+                    task.wait(3) -- Give more time for invites to send
+                    
+                    -- Accept phase
+                    acceptInvites()
+                    task.wait(5) -- Give more time for accepts to process and GUI to update
+                    
+                    -- Wait additional time for GUI to populate with UserIDs
+                    task.wait(2)
+                    
+                    -- Verify parties are correct (now GUI should show accepted members)
+                    if verifyParties() then
+                        startQueue()
+                        return -- successful, wait for game to teleport us
+                    else
+                        -- Leave and retry
+                        leaveParty()
+                        task.wait(3) -- Longer wait before retrying
+                    end
+                end
+            end
+            
+        elseif game.PlaceId == PLACE_CASCADE then
+            task.wait(10)
+            
+            if isFarmGroupMember() then
+                safeTeleport(PLACE_MATCH)
+            end
+            
+            task.wait(20)
+            
+            if isMainGroupMember() then
+                safeTeleport(PLACE_MATCH)
+            end
+            
+            matchStartTime = tick() -- Reset timeout
+        end
+        
+        task.wait(1)
+    end
+end
+
+-- START SCRIPT
+spawn(runPartyManager)
