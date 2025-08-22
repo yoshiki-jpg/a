@@ -120,7 +120,7 @@ local function inviteMembers()
                 end)
                 task.wait(2)
             end
-            if attempt < 3 then
+            if attempt < 5 then
                 task.wait(8)
             end
         end
@@ -147,7 +147,7 @@ local function acceptInvites()
     end
     
     if leaderName then
-        for i = 1, 5 do
+        for i = 1, 10 do
             pcall(function()
                 local leaderPlayer = Players:FindFirstChild(leaderName)
                 if leaderPlayer then
@@ -155,7 +155,7 @@ local function acceptInvites()
                     ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
                 end
             end)
-            task.wait(5)
+            task.wait(2)
         end
     end
 end
