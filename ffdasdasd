@@ -1,0 +1,245 @@
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+-- Define Groups with both Names and UserIds
+local MAIN_GROUP = {
+    Leader = {Name = "3malaysians", UserId = 9247717801},
+    Members = {
+        {Name = "3ramlyborigar", UserId = 9252243951},
+        {Name = "3mcdoharris", UserId = 9252259406},
+        {Name = "3familialhamly", UserId = 9252229000},
+    }
+}
+
+local FARM_GROUP = {
+    Leader = {Name = "nguy83748", UserId = 9251688294},
+    Members = {
+        {Name = "elar87482", UserId = 9252971862},
+        {Name = "reedfantastic04", UserId = 9253020411},
+        {Name = "abhgemgfd", UserId = 9253013396},
+    }
+}
+
+-- All Accounts
+local ALL_ACCOUNTS = {
+    MAIN_GROUP.Leader,
+    unpack(MAIN_GROUP.Members),
+    FARM_GROUP.Leader,
+    unpack(FARM_GROUP.Members)
+}
+
+-- Services
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Utility Functions
+local function safeTeleport(placeId)
+    while true do
+        local success, _ = pcall(function()
+            TeleportService:Teleport(placeId, Players.LocalPlayer)
+        end)
+        if success then break end
+        task.wait(5)
+    end
+end
+
+local function getCurrentPlayerNames()
+    local names = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        table.insert(names, plr.Name)
+    end
+    return names
+end
+
+local function getMajorityServer()
+    local serverCounts = {}
+    for _, acc in ipairs(ALL_ACCOUNTS) do
+        local plr = Players:FindFirstChild(acc.Name)
+        if plr then
+            local sid = plr:GetJoinData().GameId or "Unknown"
+            serverCounts[sid] = (serverCounts[sid] or 0) + 1
+        end
+    end
+
+    local majorityId, majorityCount = nil, 0
+    for sid, count in pairs(serverCounts) do
+        if count > majorityCount then
+            majorityId, majorityCount = sid, count
+        end
+    end
+    return majorityId, majorityCount
+end
+
+-- Main Flow
+task.wait(5) -- Wait until game loads
+local placeId = game.PlaceId
+
+-- FARM PLACE
+if placeId == 14067600077 then
+    safeTeleport(18637069183)
+
+-- BATTLE PLACE
+elseif placeId == 18637069183 then
+    -- Remote (only exists here!)
+    local TeamRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team")
+
+    -- Remote-dependent functions
+    local function invitePlayer(targetName)
+        local args = {"Invite", Players:WaitForChild(targetName)}
+        TeamRemote:FireServer(unpack(args))
+    end
+
+    local function acceptInvite(fromName)
+        local args = {"AcceptInvite", Players:WaitForChild(fromName)}
+        TeamRemote:FireServer(unpack(args))
+    end
+
+    local function leaveParty()
+        TeamRemote:FireServer("Leave")
+    end
+
+    local function joinQueue()
+        TeamRemote:FireServer("JoinQueue", "CASCADE")
+    end
+
+    local function checkPartyAlignment(expectedGroup)
+        local membersFrame = Players.LocalPlayer
+            .PlayerGui:WaitForChild("menu")
+            .main.sidebar.party.members
+
+        local currentParty = {}
+        for _, frame in ipairs(membersFrame:GetChildren()) do
+            if tonumber(frame.Name) then
+                table.insert(currentParty, tonumber(frame.Name))
+            end
+        end
+
+        local expectedIds = {}
+        for _, acc in ipairs(expectedGroup) do
+            table.insert(expectedIds, acc.UserId)
+        end
+
+        table.sort(currentParty)
+        table.sort(expectedIds)
+
+        if #currentParty ~= #expectedIds then return false end
+        for i = 1, #expectedIds do
+            if currentParty[i] ~= expectedIds[i] then return false end
+        end
+        return true
+    end
+
+    -- === Battle Place Logic ===
+    task.wait(10)
+
+    -- Check if all 8 accounts are present
+    local names = getCurrentPlayerNames()
+    local count = 0
+    for _, acc in ipairs(ALL_ACCOUNTS) do
+        for _, n in ipairs(names) do
+            if acc.Name == n then
+                count = count + 1
+            end
+        end
+    end
+
+    if count < #ALL_ACCOUNTS then
+        -- Retry after 15s, twice
+        for _ = 1, 2 do
+            task.wait(15)
+            names = getCurrentPlayerNames()
+            count = 0
+            for _, acc in ipairs(ALL_ACCOUNTS) do
+                for _, n in ipairs(names) do
+                    if acc.Name == n then
+                        count = count + 1
+                    end
+                end
+            end
+            if count == #ALL_ACCOUNTS then break end
+        end
+    end
+
+    -- If still not aligned → minority joins majority
+    if count < #ALL_ACCOUNTS then
+        local majServer, majCount = getMajorityServer()
+        if majServer then
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+                "!joinserver " .. majServer,
+                "All"
+            )
+        end
+    end
+
+    -- If all 8 accounts are present → parties form
+    if count == #ALL_ACCOUNTS then
+        local localName = Players.LocalPlayer.Name
+
+        -- Leaders invite their group
+        if localName == MAIN_GROUP.Leader.Name then
+            for _, member in ipairs(MAIN_GROUP.Members) do
+                invitePlayer(member.Name)
+            end
+        elseif localName == FARM_GROUP.Leader.Name then
+            for _, member in ipairs(FARM_GROUP.Members) do
+                invitePlayer(member.Name)
+            end
+        else
+            -- Members accept invite from their leader
+            if table.find(
+                {MAIN_GROUP.Members[1].Name, MAIN_GROUP.Members[2].Name, MAIN_GROUP.Members[3].Name},
+                localName
+            ) then
+                acceptInvite(MAIN_GROUP.Leader.Name)
+            elseif table.find(
+                {FARM_GROUP.Members[1].Name, FARM_GROUP.Members[2].Name, FARM_GROUP.Members[3].Name},
+                localName
+            ) then
+                acceptInvite(FARM_GROUP.Leader.Name)
+            end
+        end
+
+        -- Check party alignment
+        local group = {}
+        if localName == MAIN_GROUP.Leader.Name or table.find(
+            {MAIN_GROUP.Members[1].Name, MAIN_GROUP.Members[2].Name, MAIN_GROUP.Members[3].Name},
+            localName
+        ) then
+            group = {MAIN_GROUP.Leader, unpack(MAIN_GROUP.Members)}
+        elseif localName == FARM_GROUP.Leader.Name or table.find(
+            {FARM_GROUP.Members[1].Name, FARM_GROUP.Members[2].Name, FARM_GROUP.Members[3].Name},
+            localName
+        ) then
+            group = {FARM_GROUP.Leader, unpack(FARM_GROUP.Members)}
+        end
+
+        if not checkPartyAlignment(group) then
+            leaveParty()
+        else
+            joinQueue()
+        end
+    end
+
+    -- Step 2: Failsafe → if stuck for 5 min, teleport again
+    task.delay(300, function()
+        if game.PlaceId == 18637069183 then
+            safeTeleport(18637069183)
+        end
+    end)
+
+-- AFTER QUEUE SUCCESS PLACE
+elseif placeId == 138059541435332 then
+    task.wait(15)
+    if Players.LocalPlayer.Name == FARM_GROUP.Leader.Name
+        or table.find(
+            {FARM_GROUP.Members[1].Name, FARM_GROUP.Members[2].Name, FARM_GROUP.Members[3].Name},
+            Players.LocalPlayer.Name
+        ) then
+        safeTeleport(18637069183)
+    else
+        task.wait(5)
+        safeTeleport(18637069183)
+    end
+end
