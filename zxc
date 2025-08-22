@@ -367,13 +367,15 @@ local function inviteMembers()
     
     if localPlayer.Name == MAIN_GROUP.Leader.Name then
         debugPrint("This player is MAIN group leader, sending invites to MAIN members...")
-        for _, member in pairs(MAIN_GROUP.Members) do
-            debugPrint("Looking for member: " .. member.Name)
-            for i = 1, 3 do
+        
+        for attempt = 1, 3 do
+            debugPrint("=== INVITE ROUND " .. attempt .. " ===")
+            for _, member in pairs(MAIN_GROUP.Members) do
+                debugPrint("Looking for member: " .. member.Name)
                 local success = pcall(function()
                     local targetPlayer = Players:FindFirstChild(member.Name)
                     if targetPlayer then
-                        debugPrint("Sending invite #" .. i .. " to " .. member.Name)
+                        debugPrint("Sending invite (round " .. attempt .. ") to " .. member.Name)
                         local args = {"Invite", targetPlayer}
                         ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
                     else
@@ -381,21 +383,27 @@ local function inviteMembers()
                     end
                 end)
                 if not success then
-                    debugError("Failed to send invite #" .. i .. " to " .. member.Name)
+                    debugError("Failed to send invite (round " .. attempt .. ") to " .. member.Name)
                 end
-                task.wait(10)
+                task.wait(2) -- Small delay between individual invites in the same round
+            end
+            if attempt < 3 then
+                debugPrint("Waiting 8 seconds before next invite round...")
+                task.wait(8) -- Wait between rounds
             end
         end
         
     elseif localPlayer.Name == FARM_GROUP.Leader.Name then
         debugPrint("This player is FARM group leader, sending invites to FARM members...")
-        for _, member in pairs(FARM_GROUP.Members) do
-            debugPrint("Looking for member: " .. member.Name)
-            for i = 1, 3 do
+        
+        for attempt = 1, 3 do
+            debugPrint("=== INVITE ROUND " .. attempt .. " ===")
+            for _, member in pairs(FARM_GROUP.Members) do
+                debugPrint("Looking for member: " .. member.Name)
                 local success = pcall(function()
                     local targetPlayer = Players:FindFirstChild(member.Name)
                     if targetPlayer then
-                        debugPrint("Sending invite #" .. i .. " to " .. member.Name)
+                        debugPrint("Sending invite (round " .. attempt .. ") to " .. member.Name)
                         local args = {"Invite", targetPlayer}
                         ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
                     else
@@ -403,9 +411,13 @@ local function inviteMembers()
                     end
                 end)
                 if not success then
-                    debugError("Failed to send invite #" .. i .. " to " .. member.Name)
+                    debugError("Failed to send invite (round " .. attempt .. ") to " .. member.Name)
                 end
-                task.wait(10)
+                task.wait(2) -- Small delay between individual invites in the same round
+            end
+            if attempt < 3 then
+                debugPrint("Waiting 8 seconds before next invite round...")
+                task.wait(8) -- Wait between rounds
             end
         end
     else
