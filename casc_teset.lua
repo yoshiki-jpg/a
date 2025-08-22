@@ -17,7 +17,7 @@ local FARM_GROUP = {
     }
 }
 
--- All Accounts (for majority/minority checks)
+-- All Accounts
 local ALL_ACCOUNTS = {
     MAIN_GROUP.Leader,
     unpack(MAIN_GROUP.Members),
@@ -30,13 +30,10 @@ local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Remote
-local TeamRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team")
-
 -- Utility Functions
 local function safeTeleport(placeId)
     while true do
-        local success, err = pcall(function()
+        local success, _ = pcall(function()
             TeleportService:Teleport(placeId, Players.LocalPlayer)
         end)
         if success then break end
@@ -71,60 +68,66 @@ local function getMajorityServer()
     return majorityId, majorityCount
 end
 
-local function invitePlayer(targetName)
-    local args = {"Invite", Players:WaitForChild(targetName)}
-    TeamRemote:FireServer(unpack(args))
-end
-
-local function acceptInvite(fromName)
-    local args = {"AcceptInvite", Players:WaitForChild(fromName)}
-    TeamRemote:FireServer(unpack(args))
-end
-
-local function leaveParty()
-    TeamRemote:FireServer("Leave")
-end
-
-local function joinQueue()
-    TeamRemote:FireServer("JoinQueue", "CASCADE")
-end
-
-local function checkPartyAlignment(expectedGroup)
-    local membersFrame = Players.LocalPlayer
-        .PlayerGui:WaitForChild("menu")
-        .main.sidebar.party.members
-
-    local currentParty = {}
-    for _, frame in ipairs(membersFrame:GetChildren()) do
-        if tonumber(frame.Name) then
-            table.insert(currentParty, tonumber(frame.Name))
-        end
-    end
-
-    local expectedIds = {}
-    for _, acc in ipairs(expectedGroup) do
-        table.insert(expectedIds, acc.UserId)
-    end
-
-    table.sort(currentParty)
-    table.sort(expectedIds)
-
-    if #currentParty ~= #expectedIds then return false end
-    for i = 1, #expectedIds do
-        if currentParty[i] ~= expectedIds[i] then return false end
-    end
-    return true
-end
-
 -- Main Flow
 task.wait(5) -- Wait until game loads
-
 local placeId = game.PlaceId
 
--- Step 1: Teleport between farm and battle places
+-- FARM PLACE
 if placeId == 14067600077 then
     safeTeleport(18637069183)
+
+-- BATTLE PLACE
 elseif placeId == 18637069183 then
+    -- Remote (only exists here!)
+    local TeamRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team")
+
+    -- Remote-dependent functions
+    local function invitePlayer(targetName)
+        local args = {"Invite", Players:WaitForChild(targetName)}
+        TeamRemote:FireServer(unpack(args))
+    end
+
+    local function acceptInvite(fromName)
+        local args = {"AcceptInvite", Players:WaitForChild(fromName)}
+        TeamRemote:FireServer(unpack(args))
+    end
+
+    local function leaveParty()
+        TeamRemote:FireServer("Leave")
+    end
+
+    local function joinQueue()
+        TeamRemote:FireServer("JoinQueue", "CASCADE")
+    end
+
+    local function checkPartyAlignment(expectedGroup)
+        local membersFrame = Players.LocalPlayer
+            .PlayerGui:WaitForChild("menu")
+            .main.sidebar.party.members
+
+        local currentParty = {}
+        for _, frame in ipairs(membersFrame:GetChildren()) do
+            if tonumber(frame.Name) then
+                table.insert(currentParty, tonumber(frame.Name))
+            end
+        end
+
+        local expectedIds = {}
+        for _, acc in ipairs(expectedGroup) do
+            table.insert(expectedIds, acc.UserId)
+        end
+
+        table.sort(currentParty)
+        table.sort(expectedIds)
+
+        if #currentParty ~= #expectedIds then return false end
+        for i = 1, #expectedIds do
+            if currentParty[i] ~= expectedIds[i] then return false end
+        end
+        return true
+    end
+
+    -- === Battle Place Logic ===
     task.wait(10)
 
     -- Check if all 8 accounts are present
@@ -221,8 +224,9 @@ elseif placeId == 18637069183 then
             safeTeleport(18637069183)
         end
     end)
+
+-- AFTER QUEUE SUCCESS PLACE
 elseif placeId == 138059541435332 then
-    -- After queue success
     task.wait(15)
     if Players.LocalPlayer.Name == FARM_GROUP.Leader.Name
         or table.find(
