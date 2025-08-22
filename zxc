@@ -70,6 +70,33 @@ local function allAccountsInServer()
     return count == #ALL_ACCOUNTS
 end
 
+-- NEW FUNCTION: Check if server contains only the specified accounts
+local function serverHasOnlySpecifiedAccounts()
+    local specifiedAccountsInServer = {}
+    local totalPlayersInServer = 0
+    
+    -- Count all players and track specified accounts
+    for _, player in pairs(Players:GetPlayers()) do
+        totalPlayersInServer = totalPlayersInServer + 1
+        
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                specifiedAccountsInServer[accountId] = true
+                break
+            end
+        end
+    end
+    
+    -- Count how many specified accounts are present
+    local specifiedCount = 0
+    for _ in pairs(specifiedAccountsInServer) do
+        specifiedCount = specifiedCount + 1
+    end
+    
+    -- Return true only if all players in server are from the specified accounts
+    return specifiedCount == totalPlayersInServer and specifiedCount > 0
+end
+
 local function waitForRemotesReady()
     local ready = false
     local attempts = 0
@@ -230,19 +257,27 @@ local function runPartyManager()
             end
             
         elseif game.PlaceId == PLACE_CASCADE then
-            task.wait(10)
-            
-            if isFarmGroupMember() then
+            -- NEW LOGIC: Check if server contains only specified accounts
+            if not serverHasOnlySpecifiedAccounts() then
+                -- If server has players that aren't in our account list, teleport immediately
                 safeTeleport(PLACE_MATCH)
+                matchStartTime = tick()
+            else
+                -- Original logic if server only has specified accounts
+                task.wait(10)
+                
+                if isFarmGroupMember() then
+                    safeTeleport(PLACE_MATCH)
+                end
+                
+                task.wait(20)
+                
+                if isMainGroupMember() then
+                    safeTeleport(PLACE_MATCH)
+                end
+                
+                matchStartTime = tick()
             end
-            
-            task.wait(20)
-            
-            if isMainGroupMember() then
-                safeTeleport(PLACE_MATCH)
-            end
-            
-            matchStartTime = tick()
             
         end
         
