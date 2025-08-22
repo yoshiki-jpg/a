@@ -3,35 +3,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 
--- DEBUG LOGGING SYSTEM
-local DEBUG_ENABLED = true
-local function debugPrint(message, level)
-    if not DEBUG_ENABLED then return end
-    level = level or "INFO"
-    local timestamp = os.date("%H:%M:%S")
-    local playerName = Players.LocalPlayer and Players.LocalPlayer.Name or "Unknown"
-    print(string.format("[%s] [%s] [%s]: %s", timestamp, level, playerName, message))
-end
-
-local function debugError(message)
-    debugPrint(message, "ERROR")
-end
-
-local function debugWarn(message)
-    debugPrint(message, "WARN")
-end
-
-local function debugSuccess(message)
-    debugPrint(message, "SUCCESS")
-end
-
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "3malaysians", UserId = 9247717801},
+    Leader = {Name = "thelancewavers", UserId = 9199773198},
     Members = {
-        {Name = "3ramlyborigar", UserId = 9252243951},
-        {Name = "3mcdoharris", UserId = 9252259406},
-        {Name = "3familialhamly", UserId = 9252229000},
+        {Name = "setyourreroll", UserId = 9199762283},
+        {Name = "influxofemotions", UserId = 9199707476},
+        {Name = "mylifewavers", UserId = 9198864668},
     }
 }
 
@@ -45,7 +23,7 @@ local FARM_GROUP = {
 }
 
 local ALL_ACCOUNTS = {
-    9247717801, 9252243951, 9252259406, 9252229000, 9251688294, 9252971862, 9253020411, 9253013396
+    9199773198, 9199762283, 9199707476, 9198864668, 9251688294, 9252971862, 9253020411, 9253013396
 }
 
 local PLACE_MAIN = 14067600077
@@ -56,31 +34,22 @@ local localPlayer = Players.LocalPlayer
 
 -- UTILITY FUNCTIONS
 local function waitForGameLoaded()
-    debugPrint("Waiting for game to load...")
     if not game:IsLoaded() then
         game.Loaded:Wait()
-        debugSuccess("Game loaded!")
-    else
-        debugPrint("Game already loaded")
     end
 end
 
 local function safeTeleport(placeId)
-    debugPrint("Attempting to teleport to place: " .. tostring(placeId))
     local attempts = 0
     while true do
         attempts = attempts + 1
-        debugPrint("Teleport attempt #" .. attempts .. " to place " .. placeId)
         
         local success = pcall(function()
             TeleportService:Teleport(placeId, localPlayer)
         end)
         
         if success then 
-            debugSuccess("Teleport initiated successfully")
             break 
-        else
-            debugError("Teleport attempt #" .. attempts .. " failed, retrying in 5 seconds...")
         end
         task.wait(5)
     end
@@ -88,57 +57,24 @@ end
 
 local function allAccountsInServer()
     local count = 0
-    local presentAccounts = {}
-    local missingAccounts = {}
-    
-    debugPrint("Checking for all accounts in server...")
     
     for _, player in pairs(Players:GetPlayers()) do
         for _, accountId in pairs(ALL_ACCOUNTS) do
             if player.UserId == accountId then
                 count = count + 1
-                table.insert(presentAccounts, player.Name .. " (ID: " .. accountId .. ")")
                 break
             end
         end
     end
     
-    -- Find missing accounts
-    for _, accountId in pairs(ALL_ACCOUNTS) do
-        local found = false
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.UserId == accountId then
-                found = true
-                break
-            end
-        end
-        if not found then
-            table.insert(missingAccounts, "ID: " .. accountId)
-        end
-    end
-    
-    debugPrint("Present accounts (" .. count .. "/" .. #ALL_ACCOUNTS .. "): " .. table.concat(presentAccounts, ", "))
-    if #missingAccounts > 0 then
-        debugPrint("Missing accounts: " .. table.concat(missingAccounts, ", "))
-    end
-    
-    local allPresent = count == #ALL_ACCOUNTS
-    if allPresent then
-        debugSuccess("All accounts are present in server!")
-    else
-        debugWarn("Not all accounts present (" .. count .. "/" .. #ALL_ACCOUNTS .. ")")
-    end
-    
-    return allPresent
+    return count == #ALL_ACCOUNTS
 end
 
 local function waitForRemotesReady()
-    debugPrint("Waiting for remotes to be ready...")
     local ready = false
     local attempts = 0
-    while not ready and attempts < 60 do -- 1 minute timeout
+    while not ready and attempts < 60 do
         attempts = attempts + 1
-        debugPrint("Checking remotes readiness - attempt " .. attempts .. "/60")
         
         ready = pcall(function()
             ReplicatedStorage:WaitForChild("Remotes", 1)
@@ -147,27 +83,18 @@ local function waitForRemotesReady()
         end)
         
         if not ready then 
-            debugWarn("Remotes not ready on attempt " .. attempts .. ", waiting...")
             task.wait(1) 
         end
-    end
-    
-    if ready then
-        debugSuccess("Remotes are ready!")
-    else
-        debugError("Remotes failed to load after 60 attempts!")
     end
     
     return ready
 end
 
 local function waitForGuiReady()
-    debugPrint("Waiting for GUI to be ready...")
     local ready = false
     local attempts = 0
-    while not ready and attempts < 60 do -- 1 minute timeout
+    while not ready and attempts < 60 do
         attempts = attempts + 1
-        debugPrint("Checking GUI readiness - attempt " .. attempts .. "/60")
         
         ready = pcall(function()
             local playerGui = localPlayer:WaitForChild("PlayerGui", 1)
@@ -177,7 +104,6 @@ local function waitForGuiReady()
             local party = sidebar:WaitForChild("Party", 1)
             local members = party:WaitForChild("Members", 1)
             
-            -- Additional check to make sure members frame is actually usable
             if members and members.Parent then
                 return true
             end
@@ -185,15 +111,8 @@ local function waitForGuiReady()
         end)
         
         if not ready then 
-            debugWarn("GUI not ready on attempt " .. attempts .. ", waiting...")
             task.wait(1) 
         end
-    end
-    
-    if ready then
-        debugSuccess("GUI is ready!")
-    else
-        debugError("GUI failed to load after 60 attempts!")
     end
     
     return ready
@@ -201,107 +120,82 @@ end
 
 local function getPartyMemberIds()
     local memberIds = {}
-    debugPrint("Attempting to get party member IDs...")
     
     local success, result = pcall(function()
-        -- Wait for the members frame to exist
         local playerGui = localPlayer.PlayerGui
         if not playerGui:FindFirstChild("Menu") then 
-            debugWarn("Menu not found in PlayerGui")
             return {} 
         end
         
         local menu = playerGui.Menu
         if not menu:FindFirstChild("Main") then 
-            debugWarn("Main not found in Menu")
             return {} 
         end
         
         local main = menu.Main  
         if not main:FindFirstChild("Sidebar") then 
-            debugWarn("Sidebar not found in Main")
             return {} 
         end
         
         local sidebar = main.Sidebar
         if not sidebar:FindFirstChild("Party") then 
-            debugWarn("Party not found in Sidebar")
             return {} 
         end
         
         local party = sidebar.Party
         if not party:FindFirstChild("Members") then 
-            debugWarn("Members not found in Party")
             return {} 
         end
         
         local membersFrame = party.Members
-        debugPrint("Found Members frame, checking children...")
         
-        -- Get all children and check if they're UserID frames
-        local childNames = {}
         for _, child in pairs(membersFrame:GetChildren()) do
-            table.insert(childNames, child.Name)
             if child and child.Name then
                 local userId = tonumber(child.Name)
-                if userId and userId > 0 then -- Valid UserID
+                if userId and userId > 0 then
                     table.insert(memberIds, userId)
-                    debugPrint("Found party member ID: " .. userId)
                 end
             end
         end
-        
-        debugPrint("All member frame children: " .. table.concat(childNames, ", "))
         
         return memberIds
     end)
     
     if success and result then
-        debugPrint("Successfully retrieved " .. #result .. " party member IDs: " .. table.concat(result, ", "))
         return result
     else
-        debugError("Failed to get party member IDs")
         return {}
     end
 end
 
 local function isPlayerInCorrectGroup(userId)
-    -- Check if player belongs to MAIN_GROUP
     if userId == MAIN_GROUP.Leader.UserId then 
-        debugPrint("Player ID " .. userId .. " identified as MAIN group leader")
         return "MAIN" 
     end
     
     for _, member in pairs(MAIN_GROUP.Members) do
         if userId == member.UserId then 
-            debugPrint("Player ID " .. userId .. " identified as MAIN group member")
             return "MAIN" 
         end
     end
     
-    -- Check if player belongs to FARM_GROUP
     if userId == FARM_GROUP.Leader.UserId then 
-        debugPrint("Player ID " .. userId .. " identified as FARM group leader")
         return "FARM" 
     end
     
     for _, member in pairs(FARM_GROUP.Members) do
         if userId == member.UserId then 
-            debugPrint("Player ID " .. userId .. " identified as FARM group member")
             return "FARM" 
         end
     end
     
-    debugError("Player ID " .. userId .. " does not belong to any configured group!")
     return false
 end
 
 local function verifyParties()
-    debugPrint("Verifying party composition...")
     local partyIds = getPartyMemberIds()
     
     if #partyIds == 0 then 
-        debugWarn("No party members found, verification failed")
         return false 
     end
     
@@ -315,33 +209,16 @@ local function verifyParties()
         elseif group == "FARM" then
             farmCount = farmCount + 1
         else
-            debugError("Invalid party member detected: ID " .. userId .. " - aborting verification")
-            return false -- Someone who shouldn't be in party
+            return false
         end
     end
     
-    debugPrint("Party composition - MAIN: " .. mainCount .. "/4, FARM: " .. farmCount .. "/4")
-    
-    -- Determine what type of verification we need based on current player
     local isValid = false
     if isMainGroupMember() then
-        -- Main group members should only see main group in their party
         isValid = mainCount == 4 and farmCount == 0
-        if isValid then
-            debugSuccess("MAIN group party composition is correct!")
-        else
-            debugWarn("MAIN group party composition is incorrect (expected 4 MAIN, 0 FARM)")
-        end
     elseif isFarmGroupMember() then
-        -- Farm group members should only see farm group in their party
         isValid = farmCount == 4 and mainCount == 0
-        if isValid then
-            debugSuccess("FARM group party composition is correct!")
-        else
-            debugWarn("FARM group party composition is incorrect (expected 0 MAIN, 4 FARM)")
-        end
     else
-        debugError("Current player is not in any configured group!")
         return false
     end
     
@@ -349,91 +226,55 @@ local function verifyParties()
 end
 
 local function leaveParty()
-    debugPrint("Attempting to leave party...")
-    local success = pcall(function()
+    pcall(function()
         local args = {"Leave"}
         ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
     end)
-    
-    if success then
-        debugPrint("Leave party request sent")
-    else
-        debugError("Failed to send leave party request")
-    end
 end
 
 local function inviteMembers()
-    debugPrint("Checking if this player should send invites...")
-    
     if localPlayer.Name == MAIN_GROUP.Leader.Name then
-        debugPrint("This player is MAIN group leader, sending invites to MAIN members...")
-        
         for attempt = 1, 3 do
-            debugPrint("=== INVITE ROUND " .. attempt .. " ===")
             for _, member in pairs(MAIN_GROUP.Members) do
-                debugPrint("Looking for member: " .. member.Name)
-                local success = pcall(function()
+                pcall(function()
                     local targetPlayer = Players:FindFirstChild(member.Name)
                     if targetPlayer then
-                        debugPrint("Sending invite (round " .. attempt .. ") to " .. member.Name)
                         local args = {"Invite", targetPlayer}
                         ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                    else
-                        debugWarn("Member " .. member.Name .. " not found in server")
                     end
                 end)
-                if not success then
-                    debugError("Failed to send invite (round " .. attempt .. ") to " .. member.Name)
-                end
-                task.wait(2) -- Small delay between individual invites in the same round
+                task.wait(2)
             end
             if attempt < 3 then
-                debugPrint("Waiting 8 seconds before next invite round...")
-                task.wait(8) -- Wait between rounds
+                task.wait(8)
             end
         end
         
     elseif localPlayer.Name == FARM_GROUP.Leader.Name then
-        debugPrint("This player is FARM group leader, sending invites to FARM members...")
-        
         for attempt = 1, 3 do
-            debugPrint("=== INVITE ROUND " .. attempt .. " ===")
             for _, member in pairs(FARM_GROUP.Members) do
-                debugPrint("Looking for member: " .. member.Name)
-                local success = pcall(function()
+                pcall(function()
                     local targetPlayer = Players:FindFirstChild(member.Name)
                     if targetPlayer then
-                        debugPrint("Sending invite (round " .. attempt .. ") to " .. member.Name)
                         local args = {"Invite", targetPlayer}
                         ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                    else
-                        debugWarn("Member " .. member.Name .. " not found in server")
                     end
                 end)
-                if not success then
-                    debugError("Failed to send invite (round " .. attempt .. ") to " .. member.Name)
-                end
-                task.wait(2) -- Small delay between individual invites in the same round
+                task.wait(2)
             end
             if attempt < 3 then
-                debugPrint("Waiting 8 seconds before next invite round...")
-                task.wait(8) -- Wait between rounds
+                task.wait(8)
             end
         end
-    else
-        debugPrint("This player is not a group leader, skipping invite phase")
     end
 end
 
 local function acceptInvites()
     local leaderName = nil
-    debugPrint("Checking if this player should accept invites...")
     
-    -- Determine which leader to accept invite from
     for _, member in pairs(MAIN_GROUP.Members) do
         if localPlayer.Name == member.Name then
             leaderName = MAIN_GROUP.Leader.Name
-            debugPrint("This player is a MAIN group member, should accept invite from: " .. leaderName)
             break
         end
     end
@@ -442,52 +283,31 @@ local function acceptInvites()
         for _, member in pairs(FARM_GROUP.Members) do
             if localPlayer.Name == member.Name then
                 leaderName = FARM_GROUP.Leader.Name
-                debugPrint("This player is a FARM group member, should accept invite from: " .. leaderName)
                 break
             end
         end
     end
     
     if leaderName then
-        debugPrint("Looking for leader: " .. leaderName)
         for i = 1, 3 do
-            local success = pcall(function()
+            pcall(function()
                 local leaderPlayer = Players:FindFirstChild(leaderName)
                 if leaderPlayer then
-                    debugPrint("Sending accept invite #" .. i .. " to " .. leaderName)
                     local args = {"AcceptInvite", leaderPlayer}
                     ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                else
-                    debugWarn("Leader " .. leaderName .. " not found in server")
                 end
             end)
-            if not success then
-                debugError("Failed to send accept invite #" .. i .. " to " .. leaderName)
-            end
             task.wait(5)
         end
-    else
-        debugPrint("This player is not a group member, skipping accept phase")
     end
 end
 
 local function startQueue()
-    debugPrint("Checking if this player should start queue...")
-    
     if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
-        debugPrint("This player is a group leader, starting CASCADE queue...")
-        local success = pcall(function()
+        pcall(function()
             local args = {"JoinQueue", "CASCADE"}
             ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
         end)
-        
-        if success then
-            debugSuccess("Queue started successfully!")
-        else
-            debugError("Failed to start queue")
-        end
-    else
-        debugPrint("This player is not a group leader, skipping queue start")
     end
 end
 
@@ -509,57 +329,33 @@ end
 
 -- MAIN EXECUTION
 local function runPartyManager()
-    debugPrint("=== STARTING PARTY MANAGER ===")
-    debugPrint("Player: " .. localPlayer.Name .. " (ID: " .. localPlayer.UserId .. ")")
-    debugPrint("Current Place ID: " .. game.PlaceId)
-    
     waitForGameLoaded()
     
-    -- 5 minute timeout for being stuck in match place
     local matchStartTime = tick()
-    debugPrint("Match timeout timer started")
     
     while true do
-        debugPrint("=== MAIN LOOP ITERATION ===")
-        debugPrint("Current Place ID: " .. game.PlaceId)
-        
         if game.PlaceId == PLACE_MAIN then
-            debugPrint("Currently in MAIN place, teleporting to MATCH place...")
             safeTeleport(PLACE_MATCH)
             
         elseif game.PlaceId == PLACE_MATCH then
-            debugPrint("Currently in MATCH place, starting party formation process...")
-            
-            -- Wait 10 seconds before first check
-            debugPrint("Waiting 10 seconds before checking for accounts...")
             task.wait(10)
             
-            -- Keep checking for all accounts until present or timeout
             while not allAccountsInServer() do
-                -- Check 5 minute timeout
                 local elapsed = tick() - matchStartTime
-                debugPrint("Waiting for all accounts... (elapsed: " .. math.floor(elapsed) .. "s / 300s)")
                 
-                if elapsed > 300 then -- 5 minutes
-                    debugWarn("5 minute timeout reached, re-teleporting to MATCH place")
+                if elapsed > 300 then
                     safeTeleport(PLACE_MATCH)
                     matchStartTime = tick()
-                    break -- exit to restart cycle
+                    break
                 end
-                task.wait(15) -- check every 15 seconds
+                task.wait(15)
             end
             
-            -- Only proceed if all accounts are present and remotes/GUI are ready
             if allAccountsInServer() then
-                debugPrint("All accounts present, checking remotes and GUI...")
-                
                 local remotesReady = waitForRemotesReady()
                 local guiReady = waitForGuiReady()
                 
                 if remotesReady and guiReady then
-                    debugSuccess("All systems ready, starting party formation...")
-                    
-                    -- Party formation loop with timeout protection
                     local partyStartTime = tick()
                     local partyAttempt = 0
                     
@@ -567,83 +363,51 @@ local function runPartyManager()
                         partyAttempt = partyAttempt + 1
                         local partyElapsed = tick() - partyStartTime
                         
-                        debugPrint("=== PARTY FORMATION ATTEMPT #" .. partyAttempt .. " ===")
-                        debugPrint("Party formation elapsed time: " .. math.floor(partyElapsed) .. "s / 180s")
-                        
-                        -- Check for party formation timeout (3 minutes)
                         if partyElapsed > 180 then
-                            debugError("Party formation timeout reached (3 minutes), restarting process...")
                             leaveParty()
                             task.wait(2)
-                            break -- restart the whole process
+                            break
                         end
                         
-                        -- Invite phase
-                        debugPrint("--- INVITE PHASE ---")
                         inviteMembers()
-                        debugPrint("Waiting 3 seconds after invite phase...")
-                        task.wait(3) -- Give more time for invites to send
+                        task.wait(3)
                         
-                        -- Accept phase
-                        debugPrint("--- ACCEPT PHASE ---")
                         acceptInvites()
-                        debugPrint("Waiting 10 seconds after accept phase...")
-                        task.wait(10) -- Give more time for accepts to process and GUI to update
+                        task.wait(10)
                         
-                        -- Wait additional time for GUI to populate with UserIDs
-                        debugPrint("Waiting additional 2 seconds for GUI to update...")
                         task.wait(2)
                         
-                        -- Verify parties are correct (now GUI should show accepted members)
-                        debugPrint("--- VERIFICATION PHASE ---")
                         if verifyParties() then
-                            debugSuccess("Party verification successful! Starting queue...")
                             startQueue()
-                            debugPrint("Queue started, waiting for game teleport...")
-                            return -- successful, wait for game to teleport us
+                            return
                         else
-                            debugWarn("Party verification failed, leaving party and retrying...")
-                            -- Leave and retry
                             leaveParty()
-                            debugPrint("Waiting 3 seconds before retry...")
-                            task.wait(3) -- Longer wait before retrying
+                            task.wait(3)
                         end
                     end
-                else
-                    debugError("Remotes or GUI not ready, continuing loop...")
                 end
             end
             
         elseif game.PlaceId == PLACE_CASCADE then
-            debugPrint("Currently in CASCADE place")
-            debugPrint("Waiting 10 seconds...")
             task.wait(10)
             
             if isFarmGroupMember() then
-                debugPrint("This is a FARM group member, teleporting back to MATCH...")
                 safeTeleport(PLACE_MATCH)
             end
             
-            debugPrint("Waiting 20 seconds...")
             task.wait(20)
             
             if isMainGroupMember() then
-                debugPrint("This is a MAIN group member, teleporting back to MATCH...")
                 safeTeleport(PLACE_MATCH)
             end
             
-            matchStartTime = tick() -- Reset timeout
-            debugPrint("Match timeout timer reset")
+            matchStartTime = tick()
             
-        else
-            debugWarn("Unknown place ID: " .. game.PlaceId)
         end
         
-        debugPrint("Main loop iteration complete, waiting 1 second...")
         task.wait(1)
     end
 end
 
 -- START SCRIPT
-debugPrint("=== INITIALIZING PARTY MANAGER SCRIPT ===")
 spawn(runPartyManager)
