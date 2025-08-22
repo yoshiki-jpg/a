@@ -188,6 +188,7 @@ local function acceptInvites()
 end
 
 local function startQueue()
+    -- Try leader first, then any group member as fallback
     if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
         for attempt = 1, 3 do
             pcall(function()
@@ -196,6 +197,18 @@ local function startQueue()
             end)
             if attempt < 3 then
                 task.wait(5)
+            end
+        end
+    elseif isMainGroupMember() or isFarmGroupMember() then
+        -- Fallback: members can also try to queue
+        task.wait(2) -- Small delay to let leader try first
+        for attempt = 1, 2 do
+            pcall(function()
+                local args = {"JoinQueue", "CASCADE"}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end)
+            if attempt < 2 then
+                task.wait(3)
             end
         end
     end
