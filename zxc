@@ -150,9 +150,9 @@ local function getPartyMemberIds()
         local membersFrame = party.Members
         
         for _, child in pairs(membersFrame:GetChildren()) do
-            if child and child.Name then
+            if child:IsA("Frame") and child.Name then
                 local userId = tonumber(child.Name)
-                if userId and userId > 0 then
+                if userId then
                     table.insert(memberIds, userId)
                 end
             end
@@ -194,10 +194,8 @@ end
 
 local function verifyParties()
     local partyIds = getPartyMemberIds()
-    print("[VERIFY DEBUG] Found party member IDs:", table.concat(partyIds, ", "))
     
-    if #partyIds == 0 then 
-        print("[VERIFY DEBUG] No party members found")
+    if not partyIds or #partyIds == 0 then 
         return false 
     end
     
@@ -211,22 +209,16 @@ local function verifyParties()
         elseif group == "FARM" then
             farmCount = farmCount + 1
         else
-            print("[VERIFY DEBUG] Invalid member found:", userId)
             return false
         end
     end
     
-    print("[VERIFY DEBUG] Party composition - MAIN:", mainCount, "FARM:", farmCount)
-    
     local isValid = false
     if isMainGroupMember() then
         isValid = mainCount == 4 and farmCount == 0
-        print("[VERIFY DEBUG] Main group check - valid:", isValid, "(expected 4 MAIN, 0 FARM)")
     elseif isFarmGroupMember() then
         isValid = farmCount == 4 and mainCount == 0
-        print("[VERIFY DEBUG] Farm group check - valid:", isValid, "(expected 0 MAIN, 4 FARM)")
     else
-        print("[VERIFY DEBUG] Current player not in any group!")
         return false
     end
     
@@ -311,27 +303,11 @@ local function acceptInvites()
 end
 
 local function startQueue()
-    print("[QUEUE DEBUG] Checking if player should start queue...")
-    print("[QUEUE DEBUG] Current player ID:", localPlayer.UserId)
-    print("[QUEUE DEBUG] Main leader ID:", MAIN_GROUP.Leader.UserId)
-    print("[QUEUE DEBUG] Farm leader ID:", FARM_GROUP.Leader.UserId)
-    
     if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
-        print("[QUEUE DEBUG] Player is a leader, attempting to start queue...")
-        
-        local success, error = pcall(function()
-            print("[QUEUE DEBUG] Accessing ReplicatedStorage.Remotes.Team...")
+        pcall(function()
             local args = {"JoinQueue", "CASCADE"}
-            print("[QUEUE DEBUG] Firing server with args:", unpack(args))
             ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-            print("[QUEUE DEBUG] Queue request sent successfully!")
         end)
-        
-        if not success then
-            print("[QUEUE DEBUG] ERROR starting queue:", error)
-        end
-    else
-        print("[QUEUE DEBUG] Player is not a leader, skipping queue start")
     end
 end
 
@@ -402,9 +378,7 @@ local function runPartyManager()
                         task.wait(2)
                         
                         if verifyParties() then
-                            print("[MAIN DEBUG] Party verification successful! Starting queue...")
                             startQueue()
-                            print("[MAIN DEBUG] Queue started, waiting for game teleport...")
                             return
                         else
                             leaveParty()
