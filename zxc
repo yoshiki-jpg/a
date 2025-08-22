@@ -322,12 +322,27 @@ local function verifyParties()
     
     debugPrint("Party composition - MAIN: " .. mainCount .. "/4, FARM: " .. farmCount .. "/4")
     
-    -- Check if we have complete groups (1 leader + 3 members each)
-    local isValid = mainCount == 4 and farmCount == 4
-    if isValid then
-        debugSuccess("Party composition is correct!")
+    -- Determine what type of verification we need based on current player
+    local isValid = false
+    if isMainGroupMember() then
+        -- Main group members should only see main group in their party
+        isValid = mainCount == 4 and farmCount == 0
+        if isValid then
+            debugSuccess("MAIN group party composition is correct!")
+        else
+            debugWarn("MAIN group party composition is incorrect (expected 4 MAIN, 0 FARM)")
+        end
+    elseif isFarmGroupMember() then
+        -- Farm group members should only see farm group in their party
+        isValid = farmCount == 4 and mainCount == 0
+        if isValid then
+            debugSuccess("FARM group party composition is correct!")
+        else
+            debugWarn("FARM group party composition is incorrect (expected 0 MAIN, 4 FARM)")
+        end
     else
-        debugWarn("Party composition is incorrect")
+        debugError("Current player is not in any configured group!")
+        return false
     end
     
     return isValid
