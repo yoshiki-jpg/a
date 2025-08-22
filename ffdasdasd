@@ -35,6 +35,10 @@ local function waitForGameLoaded()
     if not game:IsLoaded() then
         game.Loaded:Wait()
     end
+    -- wait until PlayerGui is ready
+    local localPlayer = Players.LocalPlayer
+    repeat task.wait(1) until localPlayer:FindFirstChild("PlayerGui")
+    repeat task.wait(1) until localPlayer.PlayerGui:FindFirstChild("menu")
 end
 
 local function safeTeleport(placeId)
@@ -47,14 +51,13 @@ local function safeTeleport(placeId)
     end
 end
 
--- REMOTE HANDLERS (ONLY FIRE IN 18637069183)
+-- REMOTES
 local function inviteMember(leaderName, memberName)
     if game.PlaceId ~= PLACE_MATCH then return end
+    local localPlayer = Players.LocalPlayer
+    if localPlayer.Name ~= leaderName then return end
     for i = 1, 3 do
-        local args = {
-            [1] = "Invite",
-            [2] = Players:WaitForChild(memberName)
-        }
+        local args = {[1] = "Invite", [2] = Players:WaitForChild(memberName)}
         ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
         task.wait(0.5)
     end
@@ -62,11 +65,14 @@ end
 
 local function acceptInvite(memberName, leaderName)
     if game.PlaceId ~= PLACE_MATCH then return end
+    local localPlayer = Players.LocalPlayer
+    local isMember = false
+    for _, m in pairs(MAIN_GROUP.Members) do if localPlayer.Name == m.Name then isMember = true end end
+    for _, m in pairs(FARM_GROUP.Members) do if localPlayer.Name == m.Name then isMember = true end end
+    if not isMember then return end
+
     for i = 1, 3 do
-        local args = {
-            [1] = "AcceptInvite",
-            [2] = Players:WaitForChild(leaderName)
-        }
+        local args = {[1] = "AcceptInvite", [2] = Players:WaitForChild(leaderName)}
         ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
         task.wait(0.5)
     end
@@ -103,9 +109,7 @@ local function verifyParties()
     local partyIds = getPartyUserIds()
     local function checkGroup(group)
         for _, member in pairs(group.Members) do
-            if not table.find(partyIds, member.UserId) then
-                return false
-            end
+            if not table.find(partyIds, member.UserId) then return false end
         end
         return true
     end
@@ -123,54 +127,50 @@ local function allAccountsInServer()
     return count == #ALL_ACCOUNTS
 end
 
--- MAIN LOGIC
-waitForGameLoaded()
-local placeId = game.PlaceId
+-- FULL AUTORETRY LOOP
+local function runPartyManager()
+    while true do
+        if game.PlaceId == PLACE_MAIN then
+            safeTeleport(PLACE_MATCH)
 
-if placeId == PLACE_MAIN then
-    safeTeleport(PLACE_MATCH)
+        elseif game.PlaceId == PLACE_MATCH then
+            -- Wait for all accounts to be present AND local GUI ready
+            repeat task.wait(5) until allAccountsInServer() and Players.LocalPlayer:FindFirstChild("PlayerGui") and Players.LocalPlayer.PlayerGui:FindFirstChild("menu")
 
-elseif placeId == PLACE_MATCH then
-    local timer = 0
-    repeat
-        task.wait(10)
-        timer += 10
-        if allAccountsInServer() then break end
-        if timer >= 40 then break end
-    until timer >= 40
+            -- Invite/accept retry loop
+            repeat
+                -- Leaders invite members
+                if Players.LocalPlayer.Name == MAIN_GROUP.Leader.Name then
+                    for _, m in pairs(MAIN_GROUP.Members) do inviteMember(MAIN_GROUP.Leader.Name, m.Name) end
+                elseif Players.LocalPlayer.Name == FARM_GROUP.Leader.Name then
+                    for _, m in pairs(FARM_GROUP.Members) do inviteMember(FARM_GROUP.Leader.Name, m.Name) end
+                end
 
-    if allAccountsInServer() then
-        -- Invite all members
-        for _, m in pairs(MAIN_GROUP.Members) do
-            inviteMember(MAIN_GROUP.Leader.Name, m.Name)
-        end
-        for _, m in pairs(FARM_GROUP.Members) do
-            inviteMember(FARM_GROUP.Leader.Name, m.Name)
-        end
+                -- Members accept invites
+                for _, m in pairs(MAIN_GROUP.Members) do acceptInvite(m.Name, MAIN_GROUP.Leader.Name) end
+                for _, m in pairs(FARM_GROUP.Members) do acceptInvite(m.Name, FARM_GROUP.Leader.Name) end
 
-        -- Accept invites
-        for _, m in pairs(MAIN_GROUP.Members) do
-            acceptInvite(m.Name, MAIN_GROUP.Leader.Name)
-        end
-        for _, m in pairs(FARM_GROUP.Members) do
-            acceptInvite(m.Name, FARM_GROUP.Leader.Name)
-        end
+                task.wait(2)
 
-        -- Verify and queue
-        if verifyParties() then
-            startQueueIfLeader()
-        else
-            leaveParty()
-            task.wait(1)
-            -- Invite process will restart automatically
+                if verifyParties() then
+                    startQueueIfLeader()
+                    break
+                else
+                    leaveParty()
+                    task.wait(1)
+                end
+            until verifyParties()
+
+        elseif game.PlaceId == PLACE_CASCADE then
+            task.wait(10)
+            safeTeleport(PLACE_MATCH) -- FARM GROUP
+            task.wait(20)
+            safeTeleport(PLACE_MATCH) -- MAIN GROUP
         end
-    else
-        task.wait(15)
+        task.wait(5)
     end
-
-elseif placeId == PLACE_CASCADE then
-    task.wait(10)
-    safeTeleport(PLACE_MATCH) -- FARM GROUP
-    task.wait(20)
-    safeTeleport(PLACE_MATCH) -- MAIN GROUP
 end
+
+-- EXECUTE
+waitForGameLoaded()
+runPartyManager()
