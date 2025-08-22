@@ -171,11 +171,11 @@ local function waitForGuiReady()
         
         ready = pcall(function()
             local playerGui = localPlayer:WaitForChild("PlayerGui", 1)
-            local menu = playerGui:WaitForChild("menu", 1)
-            local main = menu:WaitForChild("main", 1)
-            local sidebar = main:WaitForChild("sidebar", 1)
-            local party = sidebar:WaitForChild("party", 1)
-            local members = party:WaitForChild("members", 1)
+            local menu = playerGui:WaitForChild("Menu", 1)
+            local main = menu:WaitForChild("Main", 1)
+            local sidebar = main:WaitForChild("Sidebar", 1)
+            local party = sidebar:WaitForChild("Party", 1)
+            local members = party:WaitForChild("Members", 1)
             
             -- Additional check to make sure members frame is actually usable
             if members and members.Parent then
@@ -206,37 +206,37 @@ local function getPartyMemberIds()
     local success, result = pcall(function()
         -- Wait for the members frame to exist
         local playerGui = localPlayer.PlayerGui
-        if not playerGui:FindFirstChild("menu") then 
+        if not playerGui:FindFirstChild("Menu") then 
             debugWarn("Menu not found in PlayerGui")
             return {} 
         end
         
-        local menu = playerGui.menu
-        if not menu:FindFirstChild("main") then 
-            debugWarn("Main not found in menu")
+        local menu = playerGui.Menu
+        if not menu:FindFirstChild("Main") then 
+            debugWarn("Main not found in Menu")
             return {} 
         end
         
-        local main = menu.main  
-        if not main:FindFirstChild("sidebar") then 
-            debugWarn("Sidebar not found in main")
+        local main = menu.Main  
+        if not main:FindFirstChild("Sidebar") then 
+            debugWarn("Sidebar not found in Main")
             return {} 
         end
         
-        local sidebar = main.sidebar
-        if not sidebar:FindFirstChild("party") then 
-            debugWarn("Party not found in sidebar")
+        local sidebar = main.Sidebar
+        if not sidebar:FindFirstChild("Party") then 
+            debugWarn("Party not found in Sidebar")
             return {} 
         end
         
-        local party = sidebar.party
-        if not party:FindFirstChild("members") then 
-            debugWarn("Members not found in party")
+        local party = sidebar.Party
+        if not party:FindFirstChild("Members") then 
+            debugWarn("Members not found in Party")
             return {} 
         end
         
-        local membersFrame = party.members
-        debugPrint("Found members frame, checking children...")
+        local membersFrame = party.Members
+        debugPrint("Found Members frame, checking children...")
         
         -- Get all children and check if they're UserID frames
         local childNames = {}
