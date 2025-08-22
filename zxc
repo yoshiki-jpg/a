@@ -368,7 +368,7 @@ local function inviteMembers()
                 if not success then
                     debugError("Failed to send invite #" .. i .. " to " .. member.Name)
                 end
-                task.wait(1)
+                task.wait(10)
             end
         end
         
@@ -390,7 +390,7 @@ local function inviteMembers()
                 if not success then
                     debugError("Failed to send invite #" .. i .. " to " .. member.Name)
                 end
-                task.wait(1)
+                task.wait(10)
             end
         end
     else
@@ -437,7 +437,7 @@ local function acceptInvites()
             if not success then
                 debugError("Failed to send accept invite #" .. i .. " to " .. leaderName)
             end
-            task.wait(2)
+            task.wait(5)
         end
     else
         debugPrint("This player is not a group member, skipping accept phase")
@@ -560,8 +560,8 @@ local function runPartyManager()
                         -- Accept phase
                         debugPrint("--- ACCEPT PHASE ---")
                         acceptInvites()
-                        debugPrint("Waiting 5 seconds after accept phase...")
-                        task.wait(5) -- Give more time for accepts to process and GUI to update
+                        debugPrint("Waiting 10 seconds after accept phase...")
+                        task.wait(10) -- Give more time for accepts to process and GUI to update
                         
                         -- Wait additional time for GUI to populate with UserIDs
                         debugPrint("Waiting additional 2 seconds for GUI to update...")
