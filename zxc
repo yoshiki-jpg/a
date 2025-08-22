@@ -90,148 +90,6 @@ local function waitForRemotesReady()
     return ready
 end
 
-local function waitForGuiReady()
-    local ready = false
-    local attempts = 0
-    while not ready and attempts < 60 do
-        attempts = attempts + 1
-        
-        ready = pcall(function()
-            local playerGui = localPlayer:WaitForChild("PlayerGui", 1)
-            local menu = playerGui:WaitForChild("Menu", 1)
-            local main = menu:WaitForChild("Main", 1)
-            local sidebar = main:WaitForChild("Sidebar", 1)
-            local party = sidebar:WaitForChild("Party", 1)
-            local members = party:WaitForChild("Members", 1)
-            
-            if members and members.Parent then
-                return true
-            end
-            return false
-        end)
-        
-        if not ready then 
-            task.wait(1) 
-        end
-    end
-    
-    return ready
-end
-
-local function getPartyMemberIds()
-    local memberIds = {}
-    
-    local success, result = pcall(function()
-        local playerGui = localPlayer.PlayerGui
-        if not playerGui:FindFirstChild("Menu") then 
-            return {} 
-        end
-        
-        local menu = playerGui.Menu
-        if not menu:FindFirstChild("Main") then 
-            return {} 
-        end
-        
-        local main = menu.Main  
-        if not main:FindFirstChild("Sidebar") then 
-            return {} 
-        end
-        
-        local sidebar = main.Sidebar
-        if not sidebar:FindFirstChild("Party") then 
-            return {} 
-        end
-        
-        local party = sidebar.Party
-        if not party:FindFirstChild("Members") then 
-            return {} 
-        end
-        
-        local membersFrame = party.Members
-        
-        for _, child in pairs(membersFrame:GetChildren()) do
-            if child:IsA("Frame") and child.Name then
-                local userId = tonumber(child.Name)
-                if userId then
-                    table.insert(memberIds, userId)
-                end
-            end
-        end
-        
-        return memberIds
-    end)
-    
-    if success and result then
-        return result
-    else
-        return {}
-    end
-end
-
-local function isPlayerInCorrectGroup(userId)
-    if userId == MAIN_GROUP.Leader.UserId then 
-        return "MAIN" 
-    end
-    
-    for _, member in pairs(MAIN_GROUP.Members) do
-        if userId == member.UserId then 
-            return "MAIN" 
-        end
-    end
-    
-    if userId == FARM_GROUP.Leader.UserId then 
-        return "FARM" 
-    end
-    
-    for _, member in pairs(FARM_GROUP.Members) do
-        if userId == member.UserId then 
-            return "FARM" 
-        end
-    end
-    
-    return false
-end
-
-local function verifyParties()
-    local partyIds = getPartyMemberIds()
-    
-    if not partyIds or #partyIds == 0 then 
-        return false 
-    end
-    
-    local mainCount = 0
-    local farmCount = 0
-    
-    for _, userId in pairs(partyIds) do
-        local group = isPlayerInCorrectGroup(userId)
-        if group == "MAIN" then
-            mainCount = mainCount + 1
-        elseif group == "FARM" then
-            farmCount = farmCount + 1
-        else
-            return false
-        end
-    end
-    
-    local isValid = false
-    if isMainGroupMember() then
-        isValid = mainCount == 4 and farmCount == 0
-    elseif isFarmGroupMember() then
-        isValid = farmCount == 4 and mainCount == 0
-    else
-        return false
-    end
-    
-    return isValid
-end
-
-local function leaveParty()
-    pcall(function()
-        local args = {"Leave"}
-        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-    end)
-end
-
 local function inviteMembers()
     if localPlayer.Name == MAIN_GROUP.Leader.Name then
         for attempt = 1, 3 do
@@ -289,7 +147,7 @@ local function acceptInvites()
     end
     
     if leaderName then
-        for i = 1, 3 do
+        for i = 1, 5 do
             pcall(function()
                 local leaderPlayer = Players:FindFirstChild(leaderName)
                 if leaderPlayer then
@@ -353,38 +211,16 @@ local function runPartyManager()
             
             if allAccountsInServer() then
                 local remotesReady = waitForRemotesReady()
-                local guiReady = waitForGuiReady()
                 
-                if remotesReady and guiReady then
-                    local partyStartTime = tick()
-                    local partyAttempt = 0
+                if remotesReady then
+                    inviteMembers()
+                    task.wait(3)
                     
-                    while true do
-                        partyAttempt = partyAttempt + 1
-                        local partyElapsed = tick() - partyStartTime
-                        
-                        if partyElapsed > 180 then
-                            leaveParty()
-                            task.wait(2)
-                            break
-                        end
-                        
-                        inviteMembers()
-                        task.wait(3)
-                        
-                        acceptInvites()
-                        task.wait(10)
-                        
-                        task.wait(2)
-                        
-                        if verifyParties() then
-                            startQueue()
-                            return
-                        else
-                            leaveParty()
-                            task.wait(3)
-                        end
-                    end
+                    acceptInvites()
+                    task.wait(10)
+                    
+                    startQueue()
+                    return
                 end
             end
             
