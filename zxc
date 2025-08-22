@@ -368,7 +368,7 @@ local function inviteMembers()
                 if not success then
                     debugError("Failed to send invite #" .. i .. " to " .. member.Name)
                 end
-                task.wait(0.5)
+                task.wait(1)
             end
         end
         
@@ -390,7 +390,7 @@ local function inviteMembers()
                 if not success then
                     debugError("Failed to send invite #" .. i .. " to " .. member.Name)
                 end
-                task.wait(0.5)
+                task.wait(1)
             end
         end
     else
@@ -437,7 +437,7 @@ local function acceptInvites()
             if not success then
                 debugError("Failed to send accept invite #" .. i .. " to " .. leaderName)
             end
-            task.wait(0.5)
+            task.wait(2)
         end
     else
         debugPrint("This player is not a group member, skipping accept phase")
