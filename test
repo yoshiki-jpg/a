@@ -176,10 +176,8 @@ local function testWhisperFeature()
         -- Wait before next iteration (except last)
         if i < 3 then
             print("Waiting 10 seconds before next iteration...")
-            for countdown = 10, 1, -1 do
-                print("  " .. countdown .. "...")
-                task.wait(1)
-            end
+            task.wait(10)
+            print("Wait complete, continuing to next iteration...")
         end
     end
     
