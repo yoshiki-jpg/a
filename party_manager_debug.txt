@@ -634,7 +634,7 @@ local function runPartyManager()
                 -- Original logic if server only has specified accounts
                 debugPrint("Server has only specified accounts, proceeding with normal logic")
                 debugPrint("Waiting 5 seconds...")
-                task.wait(5)
+                task.wait(1)
                 
                 if isFarmGroupMember() then
                     debugPrint("Player is farm group member, teleporting to MATCH")
@@ -643,7 +643,7 @@ local function runPartyManager()
                 end
                 
                 debugPrint("Waiting 10 seconds...")
-                task.wait(10)
+                task.wait(20)
                 
                 if isMainGroupMember() then
                     debugPrint("Player is main group member, teleporting to MATCH")
