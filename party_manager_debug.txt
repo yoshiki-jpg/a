@@ -542,6 +542,52 @@ local function isFarmGroupMember()
     return false
 end
 
+-- PARTY LEAVE FUNCTION
+local function leaveParty()
+    debugPrint("Attempting to leave current party...")
+    local success = pcall(function()
+        local args = {"Leave"}
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
+    end)
+    
+    if success then
+        debugPrint("Successfully sent leave party request")
+    else
+        debugPrint("Failed to send leave party request")
+    end
+end
+
+local function leavePartyIfInOne()
+    debugPrint("Checking if player is in a party and needs to leave...")
+    
+    -- Wait a bit for remotes to be ready
+    local remotesReady = waitForRemotesReady()
+    if not remotesReady then
+        debugPrint("Remotes not ready, skipping party leave check")
+        return
+    end
+    
+    -- Check if we're in a party by trying to get party member IDs
+    local partyMemberIds = getPartyMemberIds()
+    if #partyMemberIds > 1 then -- More than just ourselves means we're in a party
+        debugPrint("Player is in a party with " .. #partyMemberIds .. " members, leaving...")
+        leaveParty()
+        task.wait(2) -- Wait for leave to process
+        
+        -- Verify we left
+        local newPartyMemberIds = getPartyMemberIds()
+        if #newPartyMemberIds <= 1 then
+            debugPrint("Successfully left party")
+        else
+            debugPrint("May still be in party, continuing anyway...")
+        end
+    elseif #partyMemberIds == 1 then
+        debugPrint("Player is not in a party (solo)")
+    else
+        debugPrint("Could not determine party status")
+    end
+end
+
 -- MAIN EXECUTION
 local function runPartyManager()
     debugPrint("=== PARTY MANAGER STARTED ===")
@@ -549,6 +595,12 @@ local function runPartyManager()
     debugPrint("Current Place ID: " .. game.PlaceId)
     
     waitForGameLoaded()
+    
+    -- Leave any existing party at startup
+    if game.PlaceId == PLACE_MATCH then
+        debugPrint("In MATCH place, checking for existing party to leave...")
+        leavePartyIfInOne()
+    end
     
     local matchStartTime = tick()
     debugPrint("Match start time initialized: " .. matchStartTime)
@@ -634,7 +686,7 @@ local function runPartyManager()
                 -- Original logic if server only has specified accounts
                 debugPrint("Server has only specified accounts, proceeding with normal logic")
                 debugPrint("Waiting 5 seconds...")
-                task.wait(1)
+                task.wait(5)
                 
                 if isFarmGroupMember() then
                     debugPrint("Player is farm group member, teleporting to MATCH")
@@ -643,7 +695,7 @@ local function runPartyManager()
                 end
                 
                 debugPrint("Waiting 10 seconds...")
-                task.wait(20)
+                task.wait(10)
                 
                 if isMainGroupMember() then
                     debugPrint("Player is main group member, teleporting to MATCH")
