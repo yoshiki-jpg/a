@@ -695,7 +695,7 @@ local function runPartyManager()
                 end
                 
                 debugPrint("Waiting 10 seconds...")
-                task.wait(10)
+                task.wait(20)
                 
                 if isMainGroupMember() then
                     debugPrint("Player is main group member, teleporting to MATCH")
