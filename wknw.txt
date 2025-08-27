@@ -548,7 +548,7 @@ local function monitorMatch()
         if currentRound and timerText then
             -- Check if it's Round 6
             if currentRound == "Round 6" then
-                task.wait(15)
+                task.wait(25)
                 safeTeleport(PLACE_MATCH)
                 return
             end
