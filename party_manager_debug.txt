@@ -286,8 +286,8 @@ local function tryJoinLeaderServer()
     for attempt = 1, 2 do
         debugPrint("Join leader attempt " .. attempt .. "/2")
         
-        debugPrint("Waiting 20 seconds before checking for leader...")
-        task.wait(20)
+        debugPrint("Waiting 30 seconds before checking for leader...")
+        task.wait(30)
         
         -- Check if leader is now in server
         if isLeaderInServer() then
