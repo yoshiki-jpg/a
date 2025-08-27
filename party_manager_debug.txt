@@ -527,7 +527,7 @@ local function runPartyManager()
                     matchStartTime = tick()
                 end
                 
-                task.wait(20)
+                task.wait(25)
                 
                 if isMainGroupMember() then
                     safeTeleport(PLACE_MATCH)
