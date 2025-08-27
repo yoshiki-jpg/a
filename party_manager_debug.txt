@@ -268,7 +268,7 @@ local function inviteAndWaitForMembers()
         end
         
         local inviteAttempts = 0
-        local maxInviteAttempts = 6
+        local maxInviteAttempts = 10
         
         -- Send initial invites to main group members
         for _, member in pairs(MAIN_GROUP.Members) do
@@ -282,9 +282,9 @@ local function inviteAndWaitForMembers()
         end
         inviteAttempts = inviteAttempts + 1
         
-        -- Keep inviting every 3 seconds up to 6 attempts
+        -- Keep inviting every 2 seconds up to 10 attempts
         while inviteAttempts < maxInviteAttempts do
-            task.wait(3)
+            task.wait(2)
             
             if checkGroupMembersInParty(MAIN_GROUP.Members) then
                 task.wait(1)
@@ -314,7 +314,7 @@ local function inviteAndWaitForMembers()
         end
         
         local inviteAttempts = 0
-        local maxInviteAttempts = 6
+        local maxInviteAttempts = 10
         
         -- Send initial invites to farm group members
         for _, member in pairs(FARM_GROUP.Members) do
@@ -328,9 +328,9 @@ local function inviteAndWaitForMembers()
         end
         inviteAttempts = inviteAttempts + 1
         
-        -- Keep inviting every 3 seconds up to 6 attempts
+        -- Keep inviting every 2 seconds up to 10 attempts
         while inviteAttempts < maxInviteAttempts do
-            task.wait(3)
+            task.wait(2)
             
             if checkGroupMembersInParty(FARM_GROUP.Members) then
                 task.wait(1)
@@ -376,7 +376,7 @@ local function acceptInvites()
     end
     
     if leaderName then
-        local maxAcceptAttempts = 6
+        local maxAcceptAttempts = 10
         for i = 1, maxAcceptAttempts do
             pcall(function()
                 local leaderPlayer = Players:FindFirstChild(leaderName)
@@ -386,9 +386,9 @@ local function acceptInvites()
                 end
             end)
             
-            -- Wait 5 seconds between attempts, except after the last attempt
+            -- Wait 2 seconds between attempts, except after the last attempt
             if i < maxAcceptAttempts then
-                task.wait(5)
+                task.wait(2)
             end
         end
     end
