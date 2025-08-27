@@ -126,6 +126,22 @@ local function checkGroupMembersInParty(groupMembers)
     return true
 end
 
+local function isPlayerInParty()
+    local membersFrame = getMembersFrame()
+    if not membersFrame then 
+        return false 
+    end
+    
+    -- If there are any members shown, we're likely in a party
+    for _, child in pairs(membersFrame:GetChildren()) do
+        if child.ClassName == "Frame" then
+            return true
+        end
+    end
+    
+    return false
+end
+
 -- UTILITY FUNCTIONS
 local function SendChatMessage(message)
     debugPrint("Sending chat message: " .. message)
@@ -266,17 +282,23 @@ local function tryJoinLeaderServer()
         return -- Only group members should try to join leaders
     end
     
-    -- Try main leader twice with 20 second delay
+    -- Wait and check for leader before attempting joinserver
     for attempt = 1, 2 do
         debugPrint("Join leader attempt " .. attempt .. "/2")
+        
+        debugPrint("Waiting 20 seconds before checking for leader...")
+        task.wait(20)
+        
+        -- Check if leader is now in server
+        if isLeaderInServer() then
+            debugPrint("Leader found in server after waiting, no need to join")
+            return
+        end
+        
+        debugPrint("Leader still not in server, sending joinserver command...")
         pcall(function()
             SendChatMessage("!joinserver " .. MAIN_GROUP.Leader.Name)
         end)
-        
-        if attempt < 2 then
-            debugPrint("Waiting 20 seconds before next attempt...")
-            task.wait(20)
-        end
     end
 end
 
@@ -308,130 +330,122 @@ local function waitForRemotesReady()
     return ready
 end
 
+-- IMPROVED PARTY MANAGEMENT FUNCTIONS
 local function inviteAndWaitForMembers()
     if localPlayer.Name == MAIN_GROUP.Leader.Name then
         debugPrint("Main group leader inviting members...")
         
-        -- Check if party is already complete (only check own group members)
+        -- Check if party is already complete
         if checkGroupMembersInParty(MAIN_GROUP.Members) then
             debugPrint("Party already complete for main group")
             task.wait(2)
             return true
         end
         
-        local inviteAttempts = 0
-        local maxInviteAttempts = 6
+        local startTime = tick()
+        local timeout = 60 -- 60 seconds timeout
+        local inviteInterval = 2 -- Send invites every 2 seconds
+        local lastInviteTime = 0
         
-        -- Send initial invites to main group members
-        debugPrint("Sending initial invites to main group members...")
-        for _, member in pairs(MAIN_GROUP.Members) do
-            pcall(function()
-                local targetPlayer = Players:FindFirstChild(member.Name)
-                if targetPlayer then
-                    debugPrint("Inviting " .. member.Name .. " to party")
-                    local args = {"Invite", targetPlayer}
-                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                else
-                    debugPrint("Could not find " .. member.Name .. " in server")
-                end
-            end)
-        end
-        inviteAttempts = inviteAttempts + 1
+        debugPrint("Starting continuous invite loop with " .. timeout .. "s timeout")
         
-        -- Keep inviting every 3 seconds up to 6 attempts
-        while inviteAttempts < maxInviteAttempts do
-            debugPrint("Waiting 3 seconds before checking party status...")
-            task.wait(3)
+        while (tick() - startTime) < timeout do
+            local currentTime = tick()
             
+            -- Send invites every 2 seconds
+            if (currentTime - lastInviteTime) >= inviteInterval then
+                debugPrint("Sending invites to main group members... (elapsed: " .. math.floor(currentTime - startTime) .. "s)")
+                
+                for _, member in pairs(MAIN_GROUP.Members) do
+                    pcall(function()
+                        local targetPlayer = Players:FindFirstChild(member.Name)
+                        if targetPlayer then
+                            local args = {"Invite", targetPlayer}
+                            ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                        else
+                            debugPrint("Could not find " .. member.Name .. " in server")
+                        end
+                    end)
+                end
+                
+                lastInviteTime = currentTime
+            end
+            
+            -- Check if all members joined every second
             if checkGroupMembersInParty(MAIN_GROUP.Members) then
-                debugPrint("All main group members joined party successfully!")
+                debugPrint("All main group members joined party successfully! (took " .. math.floor(currentTime - startTime) .. "s)")
                 task.wait(1)
                 return true
             end
             
-            debugPrint("Not all members in party yet, sending invites again... (attempt " .. (inviteAttempts + 1) .. "/" .. maxInviteAttempts .. ")")
-            -- Send invites again
-            for _, member in pairs(MAIN_GROUP.Members) do
-                pcall(function()
-                    local targetPlayer = Players:FindFirstChild(member.Name)
-                    if targetPlayer then
-                        local args = {"Invite", targetPlayer}
-                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                    end
-                end)
-            end
-            inviteAttempts = inviteAttempts + 1
+            task.wait(1) -- Check every second
         end
         
-        debugPrint("Max invite attempts reached for main group")
-        return false -- Max attempts reached
+        debugPrint("Invite timeout reached for main group (" .. timeout .. "s)")
+        return false
         
     elseif localPlayer.Name == FARM_GROUP.Leader.Name then
         debugPrint("Farm group leader inviting members...")
         
-        -- Check if party is already complete (only check own group members)
+        -- Check if party is already complete
         if checkGroupMembersInParty(FARM_GROUP.Members) then
             debugPrint("Party already complete for farm group")
             task.wait(2)
             return true
         end
         
-        local inviteAttempts = 0
-        local maxInviteAttempts = 6
+        local startTime = tick()
+        local timeout = 60 -- 60 seconds timeout
+        local inviteInterval = 2 -- Send invites every 2 seconds
+        local lastInviteTime = 0
         
-        -- Send initial invites to farm group members
-        debugPrint("Sending initial invites to farm group members...")
-        for _, member in pairs(FARM_GROUP.Members) do
-            pcall(function()
-                local targetPlayer = Players:FindFirstChild(member.Name)
-                if targetPlayer then
-                    debugPrint("Inviting " .. member.Name .. " to party")
-                    local args = {"Invite", targetPlayer}
-                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                else
-                    debugPrint("Could not find " .. member.Name .. " in server")
-                end
-            end)
-        end
-        inviteAttempts = inviteAttempts + 1
+        debugPrint("Starting continuous invite loop with " .. timeout .. "s timeout")
         
-        -- Keep inviting every 3 seconds up to 6 attempts
-        while inviteAttempts < maxInviteAttempts do
-            debugPrint("Waiting 3 seconds before checking party status...")
-            task.wait(3)
+        while (tick() - startTime) < timeout do
+            local currentTime = tick()
             
+            -- Send invites every 2 seconds
+            if (currentTime - lastInviteTime) >= inviteInterval then
+                debugPrint("Sending invites to farm group members... (elapsed: " .. math.floor(currentTime - startTime) .. "s)")
+                
+                for _, member in pairs(FARM_GROUP.Members) do
+                    pcall(function()
+                        local targetPlayer = Players:FindFirstChild(member.Name)
+                        if targetPlayer then
+                            local args = {"Invite", targetPlayer}
+                            ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                        else
+                            debugPrint("Could not find " .. member.Name .. " in server")
+                        end
+                    end)
+                end
+                
+                lastInviteTime = currentTime
+            end
+            
+            -- Check if all members joined every second
             if checkGroupMembersInParty(FARM_GROUP.Members) then
-                debugPrint("All farm group members joined party successfully!")
+                debugPrint("All farm group members joined party successfully! (took " .. math.floor(currentTime - startTime) .. "s)")
                 task.wait(1)
                 return true
             end
             
-            debugPrint("Not all members in party yet, sending invites again... (attempt " .. (inviteAttempts + 1) .. "/" .. maxInviteAttempts .. ")")
-            -- Send invites again
-            for _, member in pairs(FARM_GROUP.Members) do
-                pcall(function()
-                    local targetPlayer = Players:FindFirstChild(member.Name)
-                    if targetPlayer then
-                        local args = {"Invite", targetPlayer}
-                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                    end
-                end)
-            end
-            inviteAttempts = inviteAttempts + 1
+            task.wait(1) -- Check every second
         end
         
-        debugPrint("Max invite attempts reached for farm group")
-        return false -- Max attempts reached
+        debugPrint("Invite timeout reached for farm group (" .. timeout .. "s)")
+        return false
     end
     
     debugPrint("Player is not a leader, cannot invite members")
-    return false -- Not a leader
+    return false
 end
 
 local function acceptInvites()
     debugPrint("Attempting to accept invites...")
     local leaderName = nil
     
+    -- Determine which leader to accept invites from
     for _, member in pairs(MAIN_GROUP.Members) do
         if localPlayer.Name == member.Name then
             leaderName = MAIN_GROUP.Leader.Name
@@ -451,28 +465,47 @@ local function acceptInvites()
     end
     
     if leaderName then
-        local maxAcceptAttempts = 6
-        for i = 1, maxAcceptAttempts do
-            debugPrint("Accept invite attempt " .. i .. "/" .. maxAcceptAttempts)
-            pcall(function()
-                local leaderPlayer = Players:FindFirstChild(leaderName)
-                if leaderPlayer then
-                    debugPrint("Found leader " .. leaderName .. ", sending accept invite")
-                    local args = {"AcceptInvite", leaderPlayer}
-                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
-                else
-                    debugPrint("Could not find leader " .. leaderName .. " in server")
-                end
-            end)
+        local startTime = tick()
+        local timeout = 60 -- 60 seconds timeout (same as invite timeout)
+        local acceptInterval = 2 -- Try to accept every 2 seconds
+        local lastAcceptTime = 0
+        
+        debugPrint("Starting continuous accept loop with " .. timeout .. "s timeout")
+        
+        while (tick() - startTime) < timeout do
+            local currentTime = tick()
             
-            -- Wait 5 seconds between attempts, except after the last attempt
-            if i < maxAcceptAttempts then
-                debugPrint("Waiting 5 seconds before next accept attempt...")
-                task.wait(5)
+            -- Check if we're already in a party
+            if isPlayerInParty() then
+                debugPrint("Player is now in a party! (took " .. math.floor(currentTime - startTime) .. "s)")
+                return true
             end
+            
+            -- Try to accept invites every 2 seconds
+            if (currentTime - lastAcceptTime) >= acceptInterval then
+                debugPrint("Attempting to accept invite from " .. leaderName .. "... (elapsed: " .. math.floor(currentTime - startTime) .. "s)")
+                
+                pcall(function()
+                    local leaderPlayer = Players:FindFirstChild(leaderName)
+                    if leaderPlayer then
+                        local args = {"AcceptInvite", leaderPlayer}
+                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                    else
+                        debugPrint("Could not find leader " .. leaderName .. " in server")
+                    end
+                end)
+                
+                lastAcceptTime = currentTime
+            end
+            
+            task.wait(1) -- Check every second
         end
+        
+        debugPrint("Accept timeout reached (" .. timeout .. "s)")
+        return false
     else
         debugPrint("Player is not a group member, no invites to accept")
+        return false
     end
 end
 
@@ -542,52 +575,6 @@ local function isFarmGroupMember()
     return false
 end
 
--- PARTY LEAVE FUNCTION
-local function leaveParty()
-    debugPrint("Attempting to leave current party...")
-    local success = pcall(function()
-        local args = {"Leave"}
-        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
-    end)
-    
-    if success then
-        debugPrint("Successfully sent leave party request")
-    else
-        debugPrint("Failed to send leave party request")
-    end
-end
-
-local function leavePartyIfInOne()
-    debugPrint("Checking if player is in a party and needs to leave...")
-    
-    -- Wait a bit for remotes to be ready
-    local remotesReady = waitForRemotesReady()
-    if not remotesReady then
-        debugPrint("Remotes not ready, skipping party leave check")
-        return
-    end
-    
-    -- Check if we're in a party by trying to get party member IDs
-    local partyMemberIds = getPartyMemberIds()
-    if #partyMemberIds > 1 then -- More than just ourselves means we're in a party
-        debugPrint("Player is in a party with " .. #partyMemberIds .. " members, leaving...")
-        leaveParty()
-        task.wait(2) -- Wait for leave to process
-        
-        -- Verify we left
-        local newPartyMemberIds = getPartyMemberIds()
-        if #newPartyMemberIds <= 1 then
-            debugPrint("Successfully left party")
-        else
-            debugPrint("May still be in party, continuing anyway...")
-        end
-    elseif #partyMemberIds == 1 then
-        debugPrint("Player is not in a party (solo)")
-    else
-        debugPrint("Could not determine party status")
-    end
-end
-
 -- MAIN EXECUTION
 local function runPartyManager()
     debugPrint("=== PARTY MANAGER STARTED ===")
@@ -595,12 +582,6 @@ local function runPartyManager()
     debugPrint("Current Place ID: " .. game.PlaceId)
     
     waitForGameLoaded()
-    
-    -- Leave any existing party at startup
-    if game.PlaceId == PLACE_MATCH then
-        debugPrint("In MATCH place, checking for existing party to leave...")
-        leavePartyIfInOne()
-    end
     
     local matchStartTime = tick()
     debugPrint("Match start time initialized: " .. matchStartTime)
@@ -621,19 +602,11 @@ local function runPartyManager()
                 tryJoinLeaderServer()
             end
             
-            -- Wait for all accounts to be in server, with timeout
+            -- Wait for all accounts to be in server
             debugPrint("Waiting for all accounts to be in server...")
             local waitingForAccounts = true
             while waitingForAccounts do
-                local elapsed = tick() - matchStartTime
-                debugPrint("Time elapsed: " .. math.floor(elapsed) .. " seconds (timeout at 300s)")
-                
-                if elapsed > 300 then
-                    debugPrint("Timeout reached (300s), teleporting to MAIN")
-                    safeTeleport(PLACE_MAIN)
-                    matchStartTime = tick()
-                    break
-                end
+                debugPrint("Checking for all accounts in server...")
                 
                 if allAccountsInServer() then
                     debugPrint("All accounts are in server! Proceeding...")
@@ -695,7 +668,7 @@ local function runPartyManager()
                 end
                 
                 debugPrint("Waiting 10 seconds...")
-                task.wait(20)
+                task.wait(10)
                 
                 if isMainGroupMember() then
                     debugPrint("Player is main group member, teleporting to MATCH")
