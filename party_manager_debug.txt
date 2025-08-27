@@ -204,14 +204,20 @@ local function tryJoinLeaderServer()
         return -- Only group members should try to join leaders
     end
     
-    -- Try main leader twice with 20 second delay
-    for attempt = 1, 2 do
-        pcall(function()
-            SendChatMessage("!joinserver " .. MAIN_GROUP.Leader.Name)
-        end)
-        
-        if attempt < 2 then
-            task.wait(20)
+    -- Check if leader is in server, if not wait 30 seconds and check again
+    if not isLeaderInServer() then
+        task.wait(30)
+        if not isLeaderInServer() then
+            -- Try main leader twice with 20 second delay
+            for attempt = 1, 2 do
+                pcall(function()
+                    SendChatMessage("!joinserver " .. MAIN_GROUP.Leader.Name)
+                end)
+                
+                if attempt < 2 then
+                    task.wait(20)
+                end
+            end
         end
     end
 end
@@ -466,10 +472,8 @@ local function runPartyManager()
             matchStartTime = tick() -- Reset timer on place change
             
         elseif game.PlaceId == PLACE_MATCH then
-            -- Check if no leader is in server and try to join one
-            if not isLeaderInServer() then
-                tryJoinLeaderServer()
-            end
+            -- Check if no leader is in server and try to join one with retry logic
+            tryJoinLeaderServer()
             
             -- Wait for all accounts to be in server, with timeout
             local waitingForAccounts = true
