@@ -6,25 +6,25 @@ local TextChatService = game:GetService("TextChatService")
 
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "IlIIllIlIIllIlIIIlII", UserId = 5729726646},
+    Leader = {Name = "IllIllIIlIlIllllIIlI", UserId = 5849007582},
     Members = {
-        {Name = "lIlIIllIllIlIllIllIl", UserId = 5729724431},
-        {Name = "IIllIlIIllIIlIIlIll", UserId = 9323915854},
-        {Name = "IlIIIlIlIlIlIlIIllIl", UserId = 5729711908},
+        {Name = "llllIlllIlIIlIIlIlll", UserId = 5849007581},
+        {Name = "llIllllIIIllIlIIllIl", UserId = 5849007642},
+        {Name = "lIllIIlIIlllllIlIIlI", UserId = 5849008179},
     }
 }
 
 local FARM_GROUP = {
-    Leader = {Name = "lIIllIlIIllIlllIllIl", UserId = 5729713788},
+    Leader = {Name = "lllllllIIlllIIllllII", UserId = 5849008345},
     Members = {
-        {Name = "BangBangYT4", UserId = 2011296277},
-        {Name = "pablolookslikecheese", UserId = 3260873018},
-        {Name = "sqpva", UserId = 3606502638},
+        {Name = "IIIIIlIlIIIIlIllllIl", UserId = 5849008552},
+        {Name = "lIlIllIIIIlllllIllII", UserId = 5849009241},
+        {Name = "IlIllIIIlIIllIIIIllI", UserId = 5849008820},
     }
 }
 
 local ALL_ACCOUNTS = {
-    5729726646, 5729724431, 9323915854, 5729711908, 5729713788, 2011296277, 3260873018, 3606502638
+    5849007582, 5849007581, 5849007642, 5849008179, 5849008345, 5849008552, 5849009241, 5849008820
 }
 
 local PLACE_MAIN = 14067600077
@@ -527,7 +527,7 @@ local function runPartyManager()
                     matchStartTime = tick()
                 end
                 
-                task.wait(25)
+                task.wait(20)
                 
                 if isMainGroupMember() then
                     safeTeleport(PLACE_MATCH)
