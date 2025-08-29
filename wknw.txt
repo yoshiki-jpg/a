@@ -8,7 +8,7 @@ local TextChatService = game:GetService("TextChatService")
 local MAIN_GROUP = {
     Leader = {Name = "IlIIllIlIIllIlIIIlII", UserId = 5729726646},
     Members = {
-        {Name = "lIlIIllIllIlIllIllIl", UserId = 5729724431},
+        {Name = "llIIIllIlllIlIlllIll", UserId = 9277338902},
         {Name = "IIllIlIIllIIlIIlIll", UserId = 9323915854},
         {Name = "IlIIIlIlIlIlIlIIllIl", UserId = 5729711908},
     }
@@ -19,12 +19,12 @@ local FARM_GROUP = {
     Members = {
         {Name = "BangBangYT4", UserId = 2011296277},
         {Name = "pablolookslikecheese", UserId = 3260873018},
-        {Name = "sqpva", UserId = 3606502638},
+        {Name = "IIlIIlIllIlIIlIlIIll", UserId = 9276161959},
     }
 }
 
 local ALL_ACCOUNTS = {
-    5729726646, 5729724431, 9323915854, 5729711908, 5729713788, 2011296277, 3260873018, 3606502638
+    5729726646, 9277338902, 9323915854, 5729711908, 5729713788, 2011296277, 3260873018, 9276161959
 }
 
 local PLACE_MAIN = 14067600077
