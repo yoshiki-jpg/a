@@ -274,7 +274,7 @@ local function inviteAndWaitForMembers()
         end
         
         local inviteAttempts = 0
-        local maxInviteAttempts = 10
+        local maxInviteAttempts = 20
         
         -- Send initial invites to main group members
         for _, member in pairs(MAIN_GROUP.Members) do
@@ -320,7 +320,7 @@ local function inviteAndWaitForMembers()
         end
         
         local inviteAttempts = 0
-        local maxInviteAttempts = 10
+        local maxInviteAttempts = 20
         
         -- Send initial invites to farm group members
         for _, member in pairs(FARM_GROUP.Members) do
@@ -382,7 +382,7 @@ local function acceptInvites()
     end
     
     if leaderName then
-        local maxAcceptAttempts = 10
+        local maxAcceptAttempts = 20
         for i = 1, maxAcceptAttempts do
             pcall(function()
                 local leaderPlayer = Players:FindFirstChild(leaderName)
