@@ -6,25 +6,25 @@ local TextChatService = game:GetService("TextChatService")
 
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "IllIllIIlIlIllllIIlI", UserId = 5849007582},
+    Leader = {Name = "IIlIlllIlllIIlIIlIlI", UserId = 9277381082},
     Members = {
-        {Name = "llllIlllIlIIlIIlIlll", UserId = 5849007581},
-        {Name = "llIllllIIIllIlIIllIl", UserId = 5849007642},
-        {Name = "lIllIIlIIlllllIlIIlI", UserId = 5849008179},
+        {Name = "lllIIlIIIlllIIlIIIll", UserId = 9277359268},
+        {Name = "IIllIllIIllIllIIllIl", UserId = 9347519893},
+        {Name = "lIIlIlIIlIlIlIllIlII", UserId = 9347563319},
     }
 }
 
 local FARM_GROUP = {
-    Leader = {Name = "lllllllIIlllIIllllII", UserId = 5849008345},
+    Leader = {Name = "lIlIIllIllIlIlIIlIll", UserId = 9347545627},
     Members = {
-        {Name = "IIIIIlIlIIIIlIllllIl", UserId = 5849008552},
-        {Name = "lIlIllIIIIlllllIllII", UserId = 5849009241},
-        {Name = "IlIllIIIlIIllIIIIllI", UserId = 5849008820},
+        {Name = "lIllIllIIlIlIIlIlIll", UserId = 9347559492},
+        {Name = "lIlIlIlIIIIIlIIlIIIl", UserId = 9348947077},
+        {Name = "lllllIllllIIlIlIIIll", UserId = 9349024364},
     }
 }
 
 local ALL_ACCOUNTS = {
-    5849007582, 5849007581, 5849007642, 5849008179, 5849008345, 5849008552, 5849009241, 5849008820
+    9277381082, 9277359268, 9347519893, 9347563319, 9347545627, 9347559492, 9348947077, 9349024364
 }
 
 local PLACE_MAIN = 14067600077
