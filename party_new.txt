@@ -1,0 +1,544 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local TextChatService = game:GetService("TextChatService")
+
+-- CONFIGURATION
+local MAIN_GROUP = {
+    Leader = {Name = "IllIllIIlIlIllllIIlI", UserId = 5849007582},
+    Members = {
+        {Name = "llllIlllIlIIlIIlIlll", UserId = 5849007581},
+        {Name = "llIllllIIIllIlIIllIl", UserId = 5849007642},
+        {Name = "lIllIIlIIlllllIlIIlI", UserId = 5849008179},
+    }
+}
+
+local FARM_GROUP = {
+    Leader = {Name = "lllllllIIlllIIllllII", UserId = 5849008345},
+    Members = {
+        {Name = "IIIIIlIlIIIIlIllllIl", UserId = 5849008552},
+        {Name = "lIlIllIIIIlllllIllII", UserId = 5849009241},
+        {Name = "IlIllIIIlIIllIIIIllI", UserId = 5849008820},
+    }
+}
+
+local ALL_ACCOUNTS = {
+    5849007582, 5849007581, 5849007642, 5849008179, 5849008345, 5849008552, 5849009241, 5849008820
+}
+
+local PLACE_MAIN = 14067600077
+local PLACE_MATCH = 18637069183
+local PLACE_CASCADE = 138059541435332
+
+local localPlayer = Players.LocalPlayer
+
+-- PARTY CHECKER FUNCTIONS
+local function getMembersFrame()
+    local playerGui = localPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return nil end
+    
+    local menu = playerGui:FindFirstChild("Menu")
+    if not menu or menu.ClassName ~= "ScreenGui" then return nil end
+    
+    local main = menu:FindFirstChild("Main")
+    if not main or main.ClassName ~= "CanvasGroup" then return nil end
+    
+    local sidebar = main:FindFirstChild("Sidebar")
+    if not sidebar or sidebar.ClassName ~= "Frame" then return nil end
+    
+    local party = sidebar:FindFirstChild("Party")
+    if not party or party.ClassName ~= "Frame" then return nil end
+    
+    local members = party:FindFirstChild("Members")
+    if not members or members.ClassName ~= "Frame" then return nil end
+    
+    return members
+end
+
+local function getPartyMemberIds()
+    local membersFrame = getMembersFrame()
+    if not membersFrame then return {} end
+    
+    local memberIds = {}
+    for _, child in pairs(membersFrame:GetChildren()) do
+        if child.ClassName == "Frame" then
+            local userId = tonumber(child.Name)
+            if userId then
+                table.insert(memberIds, userId)
+            end
+        end
+    end
+    
+    return memberIds
+end
+
+local function checkGroupMembersInParty(groupMembers)
+    local partyMemberIds = getPartyMemberIds()
+    local partyMemberSet = {}
+    
+    -- Convert party member IDs to set for faster lookup
+    for _, id in pairs(partyMemberIds) do
+        partyMemberSet[id] = true
+    end
+    
+    -- Check if all group members are in party
+    for _, member in pairs(groupMembers) do
+        if not partyMemberSet[member.UserId] then
+            return false
+        end
+    end
+    
+    return true
+end
+
+-- UTILITY FUNCTIONS
+local function SendChatMessage(message)
+    -- Check if the new TextChatService is being used
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        -- Send message using the new TextChatService
+        local textChannel = TextChatService.TextChannels.RBXGeneral
+        textChannel:SendAsync(message)
+    else
+        -- Send message using the default chat system
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+    end
+end
+
+local function waitForGameLoaded()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+end
+
+local function safeTeleport(placeId)
+    local attempts = 0
+    while true do
+        attempts = attempts + 1
+        
+        local success = pcall(function()
+            TeleportService:Teleport(placeId, localPlayer)
+        end)
+        
+        if success then 
+            break 
+        end
+        task.wait(5)
+    end
+end
+
+local function allAccountsInServer()
+    local count = 0
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                count = count + 1
+                break
+            end
+        end
+    end
+    
+    return count == #ALL_ACCOUNTS
+end
+
+local function serverHasOnlySpecifiedAccounts()
+    local specifiedAccountsInServer = {}
+    local totalPlayersInServer = 0
+    
+    -- Count all players and track specified accounts
+    for _, player in pairs(Players:GetPlayers()) do
+        totalPlayersInServer = totalPlayersInServer + 1
+        
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                specifiedAccountsInServer[accountId] = true
+                break
+            end
+        end
+    end
+    
+    -- Count how many specified accounts are present
+    local specifiedCount = 0
+    for _ in pairs(specifiedAccountsInServer) do
+        specifiedCount = specifiedCount + 1
+    end
+    
+    -- Return true only if all players in server are from the specified accounts
+    return specifiedCount == totalPlayersInServer and specifiedCount > 0
+end
+
+local function isLeaderInServer()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.UserId == MAIN_GROUP.Leader.UserId or player.UserId == FARM_GROUP.Leader.UserId then
+            return true
+        end
+    end
+    return false
+end
+
+local function tryJoinLeaderServer()
+    -- Only attempt if current player is a member (not a leader)
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
+        return -- Leaders don't need to join themselves
+    end
+    
+    -- Check if this player belongs to any group
+    local belongsToGroup = false
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if localPlayer.UserId == member.UserId then
+            belongsToGroup = true
+            break
+        end
+    end
+    if not belongsToGroup then
+        for _, member in pairs(FARM_GROUP.Members) do
+            if localPlayer.UserId == member.UserId then
+                belongsToGroup = true
+                break
+            end
+        end
+    end
+    
+    if not belongsToGroup then
+        return -- Only group members should try to join leaders
+    end
+    
+    -- Check if leader is in server, if not wait 30 seconds and check again
+    if not isLeaderInServer() then
+        task.wait(30)
+        if not isLeaderInServer() then
+            -- Try main leader twice with 20 second delay
+            for attempt = 1, 2 do
+                pcall(function()
+                    SendChatMessage("!joinserver " .. MAIN_GROUP.Leader.Name)
+                end)
+                
+                if attempt < 2 then
+                    task.wait(20)
+                end
+            end
+        end
+    end
+end
+
+local function waitForRemotesReady()
+    local ready = false
+    local attempts = 0
+    while not ready and attempts < 60 do
+        attempts = attempts + 1
+        
+        ready = pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes", 1)
+            ReplicatedStorage.Remotes:WaitForChild("Team", 1)
+            return true
+        end)
+        
+        if not ready then 
+            task.wait(1) 
+        end
+    end
+    
+    return ready
+end
+
+-- PARTY LEAVE FUNCTION
+local function leaveParty()
+    local success = pcall(function()
+        local args = {"Leave"}
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
+    end)
+end
+
+local function leavePartyIfInOne()
+    -- Wait a bit for remotes to be ready
+    local remotesReady = waitForRemotesReady()
+    if not remotesReady then
+        return
+    end
+    
+    -- Check if we're in a party by trying to get party member IDs
+    local partyMemberIds = getPartyMemberIds()
+    if #partyMemberIds > 1 then -- More than just ourselves means we're in a party
+        leaveParty()
+        task.wait(2) -- Wait for leave to process
+    end
+end
+
+local function inviteAndWaitForMembers()
+    if localPlayer.Name == MAIN_GROUP.Leader.Name then
+        -- Check if party is already complete (only check own group members)
+        if checkGroupMembersInParty(MAIN_GROUP.Members) then
+            task.wait(2)
+            return true
+        end
+        
+        local inviteAttempts = 0
+        local maxInviteAttempts = 10
+        
+        -- Send initial invites to main group members
+        for _, member in pairs(MAIN_GROUP.Members) do
+            pcall(function()
+                local targetPlayer = Players:FindFirstChild(member.Name)
+                if targetPlayer then
+                    local args = {"Invite", targetPlayer}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end
+            end)
+        end
+        inviteAttempts = inviteAttempts + 1
+        
+        -- Keep inviting every 2 seconds up to 10 attempts
+        while inviteAttempts < maxInviteAttempts do
+            task.wait(2)
+            
+            if checkGroupMembersInParty(MAIN_GROUP.Members) then
+                task.wait(1)
+                return true
+            end
+            
+            -- Send invites again
+            for _, member in pairs(MAIN_GROUP.Members) do
+                pcall(function()
+                    local targetPlayer = Players:FindFirstChild(member.Name)
+                    if targetPlayer then
+                        local args = {"Invite", targetPlayer}
+                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                    end
+                end)
+            end
+            inviteAttempts = inviteAttempts + 1
+        end
+        
+        return false -- Max attempts reached
+        
+    elseif localPlayer.Name == FARM_GROUP.Leader.Name then
+        -- Check if party is already complete (only check own group members)
+        if checkGroupMembersInParty(FARM_GROUP.Members) then
+            task.wait(2)
+            return true
+        end
+        
+        local inviteAttempts = 0
+        local maxInviteAttempts = 10
+        
+        -- Send initial invites to farm group members
+        for _, member in pairs(FARM_GROUP.Members) do
+            pcall(function()
+                local targetPlayer = Players:FindFirstChild(member.Name)
+                if targetPlayer then
+                    local args = {"Invite", targetPlayer}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end
+            end)
+        end
+        inviteAttempts = inviteAttempts + 1
+        
+        -- Keep inviting every 2 seconds up to 10 attempts
+        while inviteAttempts < maxInviteAttempts do
+            task.wait(2)
+            
+            if checkGroupMembersInParty(FARM_GROUP.Members) then
+                task.wait(1)
+                return true
+            end
+            
+            -- Send invites again
+            for _, member in pairs(FARM_GROUP.Members) do
+                pcall(function()
+                    local targetPlayer = Players:FindFirstChild(member.Name)
+                    if targetPlayer then
+                        local args = {"Invite", targetPlayer}
+                        ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                    end
+                end)
+            end
+            inviteAttempts = inviteAttempts + 1
+        end
+        
+        return false -- Max attempts reached
+    end
+    
+    return false -- Not a leader
+end
+
+local function acceptInvites()
+    local leaderName = nil
+    
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if localPlayer.Name == member.Name then
+            leaderName = MAIN_GROUP.Leader.Name
+            break
+        end
+    end
+    
+    if not leaderName then
+        for _, member in pairs(FARM_GROUP.Members) do
+            if localPlayer.Name == member.Name then
+                leaderName = FARM_GROUP.Leader.Name
+                break
+            end
+        end
+    end
+    
+    if leaderName then
+        local maxAcceptAttempts = 10
+        for i = 1, maxAcceptAttempts do
+            pcall(function()
+                local leaderPlayer = Players:FindFirstChild(leaderName)
+                if leaderPlayer then
+                    local args = {"AcceptInvite", leaderPlayer}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end
+            end)
+            
+            -- Wait 2 seconds between attempts, except after the last attempt
+            if i < maxAcceptAttempts then
+                task.wait(2)
+            end
+        end
+    end
+end
+
+local function startQueue()
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
+        for attempt = 1, 8 do
+            pcall(function()
+                local args = {"JoinQueue", "CASCADE"}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end)
+            
+            if attempt < 8 then
+                task.wait(2)
+            end
+        end
+        
+        task.wait(5)
+        
+        if game.PlaceId == PLACE_MATCH then
+            for attempt = 1, 4 do
+                pcall(function()
+                    local args = {"JoinQueue", "CASCADE"}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end)
+                task.wait(3)
+            end
+        end
+        
+    elseif isMainGroupMember() or isFarmGroupMember() then
+        task.wait(2)
+        for attempt = 1, 8 do
+            pcall(function()
+                local args = {"JoinQueue", "CASCADE"}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end)
+            if attempt < 8 then
+                task.wait(2)
+            end
+        end
+    end
+end
+
+local function isMainGroupMember()
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId then return true end
+    for _, member in pairs(MAIN_GROUP.Members) do
+        if localPlayer.UserId == member.UserId then return true end
+    end
+    return false
+end
+
+local function isFarmGroupMember()
+    if localPlayer.UserId == FARM_GROUP.Leader.UserId then return true end
+    for _, member in pairs(FARM_GROUP.Members) do
+        if localPlayer.UserId == member.UserId then return true end
+    end
+    return false
+end
+
+-- MAIN EXECUTION
+local function runPartyManager()
+    waitForGameLoaded()
+    
+    -- Leave any existing party at startup
+    if game.PlaceId == PLACE_MATCH then
+        leavePartyIfInOne()
+    end
+    
+    local matchStartTime = tick()
+    
+    while true do
+        if game.PlaceId == PLACE_MAIN then
+            safeTeleport(PLACE_MATCH)
+            matchStartTime = tick() -- Reset timer on place change
+            
+        elseif game.PlaceId == PLACE_MATCH then
+            -- Check if no leader is in server and try to join one with retry logic
+            tryJoinLeaderServer()
+            
+            -- Wait for all accounts to be in server, with timeout
+            local waitingForAccounts = true
+            while waitingForAccounts do
+                local elapsed = tick() - matchStartTime
+                
+                if elapsed > 300 then
+                    safeTeleport(PLACE_MAIN)
+                    matchStartTime = tick()
+                    break
+                end
+                
+                if allAccountsInServer() then
+                    waitingForAccounts = false
+                    local remotesReady = waitForRemotesReady()
+                    
+                    if remotesReady then
+                        task.wait(3)
+                        
+                        -- For leaders: invite and wait for members to join party
+                        if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
+                            local partyReady = inviteAndWaitForMembers()
+                            if partyReady then
+                                startQueue()
+                                task.wait(10)
+                            end
+                        else
+                            -- For members: accept invites
+                            acceptInvites()
+                            startQueue()
+                            task.wait(10)
+                        end
+                    end
+                else
+                    task.wait(15)
+                end
+            end
+            
+        elseif game.PlaceId == PLACE_CASCADE then
+            -- Check if server contains only specified accounts
+            if not serverHasOnlySpecifiedAccounts() then
+                -- If server has players that aren't in our account list, teleport immediately
+                safeTeleport(PLACE_MATCH)
+                matchStartTime = tick()
+            else
+                -- Original logic if server only has specified accounts
+                task.wait(5)
+                
+                if isFarmGroupMember() then
+                    safeTeleport(PLACE_MATCH)
+                    matchStartTime = tick()
+                end
+                
+                task.wait(15)
+                
+                if isMainGroupMember() then
+                    safeTeleport(PLACE_MATCH)
+                    matchStartTime = tick()
+                end
+            end
+        end
+        
+        task.wait(1)
+    end
+end
+
+-- START SCRIPT
+spawn(runPartyManager)
