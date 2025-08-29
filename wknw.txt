@@ -37,7 +37,7 @@ local localPlayer = Players.LocalPlayer
 local CHARACTER_ASSIGNMENTS = {
     -- Main Group
     [5729726646] = "Jay", -- Main Leader
-    [5729724431] = "Sunny", -- Main Member 1
+    [9277338902] = "Sunny", -- Main Member 1
     [9323915854] = "Jal", -- Main Member 2
     [5729711908] = "Kalin", -- Main Member 3
     
@@ -45,7 +45,7 @@ local CHARACTER_ASSIGNMENTS = {
     [5729713788] = "Jay", -- Farm Leader
     [2011296277] = "Sunny", -- Farm Member 1
     [3260873018] = "Jal", -- Farm Member 2
-    [3606502638] = "Kalin", -- Farm Member 3
+    [9276161959] = "Kalin", -- Farm Member 3
 }
 
 -- PARTY CHECKER FUNCTIONS
