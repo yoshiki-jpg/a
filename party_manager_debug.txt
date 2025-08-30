@@ -178,9 +178,9 @@ local function isLeaderInServer()
 end
 
 local function tryJoinLeaderServer()
-    -- Only attempt if current player is a member (not a leader)
-    if localPlayer.UserId == MAIN_GROUP.Leader.UserId or localPlayer.UserId == FARM_GROUP.Leader.UserId then
-        return -- Leaders don't need to join themselves
+    -- Only the main group leader doesn't need to join anyone
+    if localPlayer.UserId == MAIN_GROUP.Leader.UserId then
+        return -- Main Leader don't need to join themselves
     end
     
     -- Check if this player belongs to any group
