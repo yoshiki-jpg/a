@@ -6,16 +6,16 @@ local TextChatService = game:GetService("TextChatService")
 
 -- CONFIGURATION
 local MAIN_GROUP = {
-    Leader = {Name = "IlIIllIlIIllIlIIIlII", UserId = 5729726646},
+    Leader = {Name = "lIIllIlIIllIlllIllIl", UserId = 5729713788},
     Members = {
-        {Name = "llIIIllIlllIlIlllIll", UserId = 9277338902},
-        {Name = "IIllIlIIllIIlIIlIll", UserId = 9323915854},
         {Name = "IlIIIlIlIlIlIlIIllIl", UserId = 5729711908},
+        {Name = "IlIIIIIIIIIllIIlIlII", UserId = 9350217920},
+        {Name = "IlIIllIlIIllIlIIIlII", UserId = 5729726646},
     }
 }
 
 local FARM_GROUP = {
-    Leader = {Name = "lIIllIlIIllIlllIllIl", UserId = 5729713788},
+    Leader = {Name = "IIllIlIIllIIlIIlIll", UserId = 9323915854},
     Members = {
         {Name = "BangBangYT4", UserId = 2011296277},
         {Name = "pablolookslikecheese", UserId = 3260873018},
@@ -24,7 +24,7 @@ local FARM_GROUP = {
 }
 
 local ALL_ACCOUNTS = {
-    5729726646, 9277338902, 9323915854, 5729711908, 5729713788, 2011296277, 3260873018, 9276161959
+    5729713788, 5729711908, 9350217920, 5729726646, 9323915854, 2011296277, 3260873018, 9276161959
 }
 
 local PLACE_MAIN = 14067600077
@@ -36,16 +36,16 @@ local localPlayer = Players.LocalPlayer
 -- CHARACTER ASSIGNMENTS
 local CHARACTER_ASSIGNMENTS = {
     -- Main Group
-    [5729726646] = "Jay", -- Main Leader
-    [9277338902] = "Sunny", -- Main Member 1
-    [9323915854] = "Jal", -- Main Member 2
-    [5729711908] = "Kalin", -- Main Member 3
+    [5729713788] = "Jay",    -- Main Leader
+    [5729711908] = "Sunny",  -- Main Member 1
+    [9350217920] = "Jal",    -- Main Member 2
+    [5729726646] = "Kalin",  -- Main Member 3
     
     -- Farm Group
-    [5729713788] = "Jay", -- Farm Leader
-    [2011296277] = "Sunny", -- Farm Member 1
-    [3260873018] = "Jal", -- Farm Member 2
-    [9276161959] = "Kalin", -- Farm Member 3
+    [9323915854] = "Jay",    -- Farm Leader
+    [2011296277] = "Sunny",  -- Farm Member 1
+    [3260873018] = "Jal",    -- Farm Member 2
+    [9276161959] = "Kalin",  -- Farm Member 3
 }
 
 -- PARTY CHECKER FUNCTIONS
