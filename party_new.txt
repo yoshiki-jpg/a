@@ -290,9 +290,9 @@ local function inviteAndWaitForMembers()
         end
         inviteAttempts = inviteAttempts + 1
         
-        -- Keep inviting every 2 seconds up to 10 attempts
+        -- Keep inviting every 3 seconds up to 20 attempts
         while inviteAttempts < maxInviteAttempts do
-            task.wait(2)
+            task.wait(3)
             
             if checkGroupMembersInParty(MAIN_GROUP.Members) then
                 task.wait(1)
@@ -336,9 +336,9 @@ local function inviteAndWaitForMembers()
         end
         inviteAttempts = inviteAttempts + 1
         
-        -- Keep inviting every 2 seconds up to 10 attempts
+        -- Keep inviting every 3 seconds up to 20 attempts
         while inviteAttempts < maxInviteAttempts do
-            task.wait(2)
+            task.wait(3)
             
             if checkGroupMembersInParty(FARM_GROUP.Members) then
                 task.wait(1)
@@ -394,9 +394,9 @@ local function acceptInvites()
                 end
             end)
             
-            -- Wait 2 seconds between attempts, except after the last attempt
+            -- Wait 3 seconds between attempts, except after the last attempt
             if i < maxAcceptAttempts then
-                task.wait(2)
+                task.wait(3)
             end
         end
     end
