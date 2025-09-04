@@ -6,50 +6,46 @@ local TextChatService = game:GetService("TextChatService")
 
 -- CONFIGURATION
 local MAIN_GROUP_1 = {
-    Leader = {Name = "lllIIlIIIlllIIlIIIll", UserId = 9277359268},
+    Leader = {Name = "IIIlllllIlIlIlllllIl", UserId = 9405339756},
     Members = {
-        {Name = "lIIlIlIIlIlIlIllIlII", UserId = 9347563319},
-        {Name = "IIlIlllIlllIIlIIlIlI", UserId = 9277381082},
-        {Name = "IIllIllIIllIllIIllIl", UserId = 9347519893},
+        {Name = "IlllIlIllIlllIlIllIl", UserId = 9405315646},
+        {Name = "IlIIIlllllIlIlllllII", UserId = 9405319087},
+        {Name = "lIlIIIIlIIlIIIlIlIIl", UserId = 9405327038},
     }
 }
-
 local MAIN_GROUP_2 = {
-    Leader = {Name = "IllIIIIIIIIllIIllIlI", UserId = 5849009800},
+    Leader = {Name = "IllIlllIIIIIllIIIIll", UserId = 9405342331},
     Members = {
-        {Name = "lllIllllIIllIIIIlIII", UserId = 5849009932},
-        {Name = "lIlIIIIllIIIIlIllIll", UserId = 5849010439},
+        {Name = "IllIlIllIIlIlIIIllll", UserId = 9405323639},
+        {Name = "llllllIIIllllIIIIIlI", UserId = 9406045557},
+        {Name = "IIllllIllIlIllllIIIl", UserId = 9406047042},
+    }
+}
+local FARM_GROUP_1 = {
+    Leader = {Name = "llIIlIIlIIllIlIllIll", UserId = 9406048015},
+    Members = {
+        {Name = "lIlIlIlllIllIIlllIlI", UserId = 9403250688},
+        {Name = "IIIllIIlIlIllIlIlIII", UserId = 9404912407},
+        {Name = "IlIlIIlIIIIIIllllIll", UserId = 9404913321},
+    }
+}
+local FARM_GROUP_2 = {
+    Leader = {Name = "llIlIIIlIIlIIIlIIllI", UserId = 9404900047},
+    Members = {
+        {Name = "IIIIIlIIlIIlIIIlIlIl", UserId = 9404918296},
+        {Name = "IllIIIIIIIIllIIllIlI", UserId = 5849009800},
         {Name = "lIIIIIllllIIlIIIIlIl", UserId = 5849011997},
     }
 }
-
-local FARM_GROUP_1 = {
-    Leader = {Name = "lllllIllllIIlIlIIIll", UserId = 9349024364},
-    Members = {
-        {Name = "lIlIlIlIIIIIlIIlIIIl", UserId = 9348947077},
-        {Name = "lIlIIllIllIlIlIIlIll", UserId = 9347545627},
-        {Name = "lIllIllIIlIlIIlIlIll", UserId = 9347559492},
-    }
-}
-
-local FARM_GROUP_2 = {
-    Leader = {Name = "IlIllllIIlllIllIIlIl", UserId = 9350221399},
-    Members = {
-        {Name = "lIlIllIIIIlllllIllII", UserId = 5849009241},
-        {Name = "IIIIIlIlIIIIlIllllIl", UserId = 5849008552},
-        {Name = "lllllllIIlllIIllllII", UserId = 5849008345},
-    }
-}
-
 local ALL_ACCOUNTS = {
     -- Main Group 1
-    9277359268, 9347563319, 9277381082, 9347519893,
+    9405339756, 9405315646, 9405319087, 9405327038,
     -- Main Group 2
-    5849009800, 5849009932, 5849010439, 5849011997,
+    9405342331, 9405323639, 9406045557, 9406047042,
     -- Farm Group 1
-    9349024364, 9348947077, 9347545627, 9347559492,
+    9406048015, 9403250688, 9404912407, 9404913321,
     -- Farm Group 2
-    9350221399, 5849009241, 5849008552, 5849008345
+    9404900047, 9404918296, 5849009800, 5849011997
 }
 
 local PLACE_MAIN = 14067600077
