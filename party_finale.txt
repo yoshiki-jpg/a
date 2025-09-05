@@ -13,14 +13,6 @@ local MAIN_GROUP_1 = {
         {Name = "lIlIIIIlIIlIIIlIlIIl", UserId = 9405327038},
     }
 }
-local MAIN_GROUP_2 = {
-    Leader = {Name = "IllIlllIIIIIllIIIIll", UserId = 9405342331},
-    Members = {
-        {Name = "IllIlIllIIlIlIIIllll", UserId = 9405323639},
-        {Name = "llllllIIIllllIIIIIlI", UserId = 9406045557},
-        {Name = "IIllllIllIlIllllIIIl", UserId = 9406047042},
-    }
-}
 local FARM_GROUP_1 = {
     Leader = {Name = "llIIlIIlIIllIlIllIll", UserId = 9406048015},
     Members = {
@@ -29,23 +21,31 @@ local FARM_GROUP_1 = {
         {Name = "IlIlIIlIIIIIIllllIll", UserId = 9404913321},
     }
 }
+local MAIN_GROUP_2 = {
+    Leader = {Name = "IllIlllIIIIIllIIIIll", UserId = 9405342331},
+    Members = {
+        {Name = "IllIlIllIIlIlIIIllll", UserId = 9405323639},
+        {Name = "llllllIIIllllIIIIIlI", UserId = 9406045557},
+        {Name = "IIllllIllIlIllllIIIl", UserId = 9406047042},
+    }
+}
 local FARM_GROUP_2 = {
     Leader = {Name = "llIlIIIlIIlIIIlIIllI", UserId = 9404900047},
     Members = {
         {Name = "IIIIIlIIlIIlIIIlIlIl", UserId = 9404918296},
-        {Name = "IllIIIIIIIIllIIllIlI", UserId = 5849009800},
+        {Name = "lllIIlIlllIIlIIlIIIl", UserId = 9407872016},
         {Name = "lIIIIIllllIIlIIIIlIl", UserId = 5849011997},
     }
 }
 local ALL_ACCOUNTS = {
     -- Main Group 1
     9405339756, 9405315646, 9405319087, 9405327038,
-    -- Main Group 2
-    9405342331, 9405323639, 9406045557, 9406047042,
     -- Farm Group 1
     9406048015, 9403250688, 9404912407, 9404913321,
+    -- Main Group 2
+    9405342331, 9405323639, 9406045557, 9406047042,
     -- Farm Group 2
-    9404900047, 9404918296, 5849009800, 5849011997
+    9404900047, 9404918296, 9407872016, 5849011997
 }
 
 local PLACE_MAIN = 14067600077
