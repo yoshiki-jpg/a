@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/2v2but3.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/party_manager_no_join.txt"))()
