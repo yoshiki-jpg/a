@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 local TextChatService = game:GetService("TextChatService")
 
--- CORRECTED CONFIGURATION
 -- MAIN GROUPS (3 total)
 local MAIN_GROUP_1 = {
     Leader = {Name = "lIIIIllllIlIIllIIlll", UserId = 9404545850},
@@ -23,8 +22,8 @@ local MAIN_GROUP_3 = {
 
 -- FARM GROUPS (3 total)
 local FARM_GROUP_1 = {
-    Leader = {Name = "IIlIIIIlIIllIIllIIIl", UserId = 5849194872},
-    Member = {Name = "IIllIIlIIIllIllllIlI", UserId = 5849194882}
+    Leader = {Name = "IIlIIIIIIlllIIllIIIl", UserId = 9405094868},
+    Member = {Name = "IllllIllIIllIllIllIl", UserId = 9408721076}
 }
 
 local FARM_GROUP_2 = {
@@ -41,7 +40,7 @@ local ALL_ACCOUNTS = {
     -- Main Groups
     9404545850, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030,
     -- Farm Groups
-    5849194872, 5849194882, 3260873018, 9404548672, 9404538429, 9404543499
+    9405094868, 9408721076, 3260873018, 9404548672, 9404538429, 9404543499
 }
 
 -- All main group IDs combined for easier checking
@@ -70,8 +69,8 @@ local CHARACTER_ASSIGNMENTS = {
     [9402850030] = "Sunny",  -- Main 3 Member
     
     -- Farm Group 1
-    [5849194872] = "Jal",    -- Farm 1 Leader
-    [5849194882] = "Kalin",  -- Farm 1 Member
+    [9405094868] = "Jal",    -- Farm 1 Leader
+    [9408721076] = "Kalin",  -- Farm 1 Member
     
     -- Farm Group 2
     [3260873018] = "Jay",    -- Farm 2 Leader
