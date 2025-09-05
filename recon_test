@@ -1,0 +1,65 @@
+-- SERVICES
+local Players = game:GetService("Players")
+
+-- CONFIGURATION
+local ALL_ACCOUNTS = {
+    -- Main Group 1
+    9405339756, 9405315646, 9405319087, 9405327038,
+    -- Main Group 2
+    9405342331, 9405323639, 9406045557, 9406047042,
+    -- Farm Group 1
+    9406048015, 9403250688, 9404912407, 9404913321,
+    -- Farm Group 2
+    9404900047, 9404918296, 5849009800, 5849011997
+}
+
+local PLACE_CASCADE = 138059541435332
+
+-- DETECTION FUNCTIONS
+local function isSpecifiedAccount(userId)
+    for _, accountId in pairs(ALL_ACCOUNTS) do
+        if userId == accountId then
+            return true
+        end
+    end
+    return false
+end
+
+local function hasWrongPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if not isSpecifiedAccount(player.UserId) then
+            return true
+        end
+    end
+    return false
+end
+
+-- MONITORING FUNCTION
+local function monitorServer()
+    while true do
+        if game.PlaceId == PLACE_CASCADE then
+            if hasWrongPlayers() then
+                game:Shutdown()
+                break
+            end
+        end
+        task.wait(1)
+    end
+end
+
+-- PLAYER JOIN MONITORING
+Players.PlayerAdded:Connect(function(player)
+    if game.PlaceId == PLACE_CASCADE then
+        if not isSpecifiedAccount(player.UserId) then
+            game:Shutdown()
+        end
+    end
+end)
+
+-- IMMEDIATE CHECK ON LOAD
+if game.PlaceId == PLACE_CASCADE and hasWrongPlayers() then
+    game:Shutdown()
+end
+
+-- START MONITORING
+spawn(monitorServer)
