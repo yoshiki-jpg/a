@@ -4,10 +4,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 local TextChatService = game:GetService("TextChatService")
 
--- CONFIGURATION
+-- CORRECTED CONFIGURATION
 -- MAIN GROUPS (3 total)
 local MAIN_GROUP_1 = {
-    Leader = {Name = "IlIIllIIllIlIlllIIIl", UserId = 5849012098},
+    Leader = {Name = "lIIIIllllIlIIllIIlll", UserId = 9404545850},
     Member = {Name = "llIlllIllIllIlIlllll", UserId = 5849012197}
 }
 
@@ -33,20 +33,20 @@ local FARM_GROUP_2 = {
 }
 
 local FARM_GROUP_3 = {
-    Leader = {Name = "IIlIIlllllIlllIIIlII", UserId = 9404523629},
-    Member = {Name = "lIllllIlIllIllIIIlll", UserId = 9404550773}
+    Leader = {Name = "lIlIIIIIlIllIllIIllI", UserId = 9404538429},
+    Member = {Name = "IIIIllIlIlllIllIIllI", UserId = 9404543499}
 }
 
 local ALL_ACCOUNTS = {
     -- Main Groups
-    5849012098, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030,
+    9404545850, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030,
     -- Farm Groups
-    5849194872, 5849194882, 3260873018, 9404548672, 9404523629, 9404550773
+    5849194872, 5849194882, 3260873018, 9404548672, 9404538429, 9404543499
 }
 
 -- All main group IDs combined for easier checking
 local ALL_MAIN_GROUP_IDS = {
-    5849012098, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030
+    9404545850, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030
 }
 
 local PLACE_MAIN = 14067600077
@@ -58,7 +58,7 @@ local localPlayer = Players.LocalPlayer
 -- CHARACTER ASSIGNMENTS
 local CHARACTER_ASSIGNMENTS = {
     -- Main Group 1
-    [5849012098] = "Jay",    -- Main 1 Leader
+    [9404545850] = "Jay",    -- Main 1 Leader
     [5849012197] = "Sunny",  -- Main 1 Member
     
     -- Main Group 2
@@ -78,8 +78,8 @@ local CHARACTER_ASSIGNMENTS = {
     [9404548672] = "Sunny",  -- Farm 2 Member
     
     -- Farm Group 3
-    [9404523629] = "Jal",    -- Farm 3 Leader
-    [9404550773] = "Kalin",  -- Farm 3 Member
+    [9404538429] = "Jal",    -- Farm 3 Leader
+    [9404543499] = "Kalin",  -- Farm 3 Member
 }
 
 -- PARTY CHECKER FUNCTIONS
