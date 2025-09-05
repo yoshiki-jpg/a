@@ -1,1 +1,16 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/final_party_manager.txt"))()
+
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+-- Replace with your actual values
+local place_match = 18637069183 -- The place you want to check against
+local main_place = 14067600077  -- The main place you want to teleport to
+
+if game.PlaceId == place_match then
+    task.wait(180) -- wait 180 seconds
+    local player = Players.LocalPlayer
+    if player then
+        TeleportService:Teleport(main_place, player)
+    end
+end
