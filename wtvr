@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/final_party_manager.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/yoshiki-jpg/a/refs/heads/main/debug_party_manager.txt"))()
