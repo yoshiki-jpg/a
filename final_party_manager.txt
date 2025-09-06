@@ -7,7 +7,7 @@ local TextChatService = game:GetService("TextChatService")
 -- MAIN GROUPS (3 total)
 local MAIN_GROUP_1 = {
     Leader = {Name = "lIIIIllllIlIIllIIlll", UserId = 9404545850},
-    Member = {Name = "llIlllIllIllIlIlllll", UserId = 5849012197}
+    Member = {Name = "IlIlllllIIIllIllIIll", UserId = 5849198883}
 }
 
 local MAIN_GROUP_2 = {
@@ -38,14 +38,14 @@ local FARM_GROUP_3 = {
 
 local ALL_ACCOUNTS = {
     -- Main Groups
-    9404545850, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030,
+    9404545850, 5849198883, 9402840450, 9402862163, 9402863701, 9402850030,
     -- Farm Groups
     9405094868, 9408721076, 3260873018, 9404548672, 9404538429, 9404543499
 }
 
 -- All main group IDs combined for easier checking
 local ALL_MAIN_GROUP_IDS = {
-    9404545850, 5849012197, 9402840450, 9402862163, 9402863701, 9402850030
+    9404545850, 5849198883, 9402840450, 9402862163, 9402863701, 9402850030
 }
 
 local PLACE_MAIN = 14067600077
@@ -58,7 +58,7 @@ local localPlayer = Players.LocalPlayer
 local CHARACTER_ASSIGNMENTS = {
     -- Main Group 1
     [9404545850] = "Jay",    -- Main 1 Leader
-    [5849012197] = "Sunny",  -- Main 1 Member
+    [5849198883] = "Sunny",  -- Main 1 Member
     
     -- Main Group 2
     [9402840450] = "Jal",    -- Main 2 Leader
