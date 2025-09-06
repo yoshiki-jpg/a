@@ -34,7 +34,7 @@ local FARM_GROUP_2 = {
     Members = {
         {Name = "IIIIIlIIlIIlIIIlIlIl", UserId = 9404918296},
         {Name = "lllIIlIlllIIlIIlIIIl", UserId = 9407872016},
-        {Name = "lIIIIIllllIIlIIIIlIl", UserId = 5849011997},
+        {Name = "llllllllIIlIIlIIlIll", UserId = 9408703981},
     }
 }
 local ALL_ACCOUNTS = {
@@ -45,7 +45,7 @@ local ALL_ACCOUNTS = {
     -- Main Group 2
     9405342331, 9405323639, 9406045557, 9406047042,
     -- Farm Group 2
-    9404900047, 9404918296, 9407872016, 5849011997
+    9404900047, 9404918296, 9407872016, 9408703981
 }
 
 local PLACE_MAIN = 14067600077
