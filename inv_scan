@@ -1,3 +1,7 @@
+if not game:IsLoaded() then
+    repeat task.wait() until game:IsLoaded()
+end
+
 -- Simple Inventory Change Scanner with Webhook
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
