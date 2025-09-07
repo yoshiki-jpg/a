@@ -622,7 +622,7 @@ local function runPartyManager()
                 matchStartTime = tick()
             else
                 -- Original logic for staying/leaving based on group type
-                task.wait(5)
+                task.wait(3)
                 
                 local myGroup, myRole = getPlayerGroup()
                 
@@ -631,7 +631,7 @@ local function runPartyManager()
                     matchStartTime = tick()
                 end
                 
-                task.wait(30)
+                task.wait(35)
                 
                 if myGroup == "MAIN_GROUP_1" or myGroup == "MAIN_GROUP_2" then
                     safeTeleport(PLACE_MATCH)
