@@ -1,5 +1,6 @@
 -- SERVICES
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
 -- CONFIGURATION
 local ALL_ACCOUNTS = {
@@ -14,8 +15,12 @@ local ALL_ACCOUNTS = {
 }
 
 local PLACE_CASCADE = 138059541435332
+local WEBHOOK = "https://discord.com/api/webhooks/1414252596830539956/DRrktLKjUKuUGIAu11TXrinT2LGkzI3Uchu0ttrNtS5xhDDzs6KT1yhX7UFbbsHi0SqK"
 
--- DETECTION FUNCTIONS
+-- HTTP REQUEST FUNCTION
+local httprequest = request or http_request or (http and http.request) or (syn and syn.request) or (fluxus and fluxus.request)
+
+-- ACCOUNT CHECK FUNCTIONS
 local function isSpecifiedAccount(userId)
     for _, accountId in pairs(ALL_ACCOUNTS) do
         if userId == accountId then
@@ -34,16 +39,68 @@ local function hasWrongPlayers()
     return false
 end
 
--- MONITORING FUNCTION
+-- INVENTORY SCANNER
+local oldInventory = {}
+
+local function sendWebhook(item, change, total)
+    if not httprequest or not WEBHOOK then return end
+    
+    task.spawn(function()
+        httprequest({
+            Url = WEBHOOK,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode({
+                content = "📦 **INVENTORY UPDATE!**\n"
+                    .. "**Item:** `" .. item .. "`\n"
+                    .. "**Change:** +" .. change .. "\n"
+                    .. "**Total:** " .. total
+            })
+        })
+    end)
+end
+
+local function getInventory()
+    local success, result = pcall(function()
+        return game:GetService("ReplicatedStorage").Remotes.GetReadableData:InvokeServer()
+    end)
+    
+    if success and result and result.Inventory then
+        return result.Inventory
+    end
+    return {}
+end
+
+local function checkChanges()
+    local newInventory = getInventory()
+    
+    for item, quantity in pairs(newInventory) do
+        local newQty = tonumber(quantity) or 0
+        local oldQty = tonumber(oldInventory[item]) or 0
+        
+        if newQty > oldQty then
+            local change = newQty - oldQty
+            sendWebhook(item, change, newQty)
+        end
+    end
+    
+    oldInventory = newInventory
+end
+
+-- MONITORING FUNCTION (accounts + inventory)
 local function monitorServer()
     while true do
         if game.PlaceId == PLACE_CASCADE then
+            -- Account enforcement
             if hasWrongPlayers() then
                 game:Shutdown()
                 break
             end
+
+            -- Inventory monitoring
+            checkChanges()
         end
-        task.wait(1)
+        task.wait(2)
     end
 end
 
@@ -56,9 +113,12 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
--- IMMEDIATE CHECK ON LOAD
-if game.PlaceId == PLACE_CASCADE and hasWrongPlayers() then
-    game:Shutdown()
+-- INITIAL CHECKS
+if game.PlaceId == PLACE_CASCADE then
+    if hasWrongPlayers() then
+        game:Shutdown()
+    end
+    oldInventory = getInventory()
 end
 
 -- START MONITORING
