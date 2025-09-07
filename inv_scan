@@ -1,0 +1,135 @@
+-- Simple Inventory Change Scanner with Webhook
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- Webhook configuration
+local webhook = "https://discord.com/api/webhooks/1414252596830539956/DRrktLKjUKuUGIAu11TXrinT2LGkzI3Uchu0ttrNtS5xhDDzs6KT1yhX7UFbbsHi0SqK"
+
+-- HTTP request function
+local httprequest = request or http_request or (http and http.request) or (syn and syn.request) or (fluxus and fluxus.request)
+
+-- Store previous inventory
+local oldInventory = {}
+
+-- Get player username
+local function getUsername()
+    local player = Players.LocalPlayer
+    return player and player.Name or "Unknown Player"
+end
+
+-- Send webhook notification
+local function sendWebhook(item, change, total, fullInventory)
+    if not httprequest or not webhook then return end
+    
+    local username = getUsername()
+    
+    -- Build full inventory string
+    local inventoryList = {}
+    for itemName, quantity in pairs(fullInventory) do
+        local oldQty = tonumber(oldInventory[itemName]) or 0
+        local newQty = tonumber(quantity) or 0
+        
+        if itemName == item then
+            -- Highlight the changed item
+            table.insert(inventoryList, "**" .. itemName .. ":** " .. oldQty .. " > " .. newQty)
+        else
+            table.insert(inventoryList, itemName .. ": " .. newQty)
+        end
+    end
+    
+    local inventoryText = table.concat(inventoryList, "\n")
+    if inventoryText == "" then
+        inventoryText = "No items in inventory"
+    end
+    
+    -- Truncate if too long (Discord embed field limit is 1024 characters)
+    if #inventoryText > 1000 then
+        inventoryText = string.sub(inventoryText, 1, 1000) .. "\n... (truncated)"
+    end
+    
+    task.spawn(function()
+        pcall(function()
+            httprequest({
+                Url = webhook,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode({
+                    embeds = {{
+                        title = "📦 Inventory Update",
+                        description = "New items detected in inventory!",
+                        color = 65280, -- Green color (0x00FF00)
+                        fields = {
+                            {
+                                name = "👤 Player",
+                                value = "`" .. username .. "`",
+                                inline = true
+                            },
+                            {
+                                name = "🎁 Changed Item",
+                                value = "`" .. item .. "`",
+                                inline = true
+                            },
+                            {
+                                name = "➕ Change",
+                                value = "+" .. change,
+                                inline = true
+                            },
+                            {
+                                name = "📋 Full Inventory",
+                                value = "```\n" .. inventoryText .. "\n```",
+                                inline = false
+                            }
+                        },
+                        timestamp = os.date("!%Y-%m-%dT%H:%M:%S.000Z"),
+                        footer = {
+                            text = "Inventory Scanner"
+                        }
+                    }}
+                })
+            })
+        end)
+    end)
+end
+
+-- Get current inventory
+local function getInventory()
+    local success, result = pcall(function()
+        return game:GetService("ReplicatedStorage").Remotes.GetReadableData:InvokeServer()
+    end)
+    
+    if success and result and result.Inventory then
+        return result.Inventory
+    end
+    return {}
+end
+
+-- Check for changes
+local function checkChanges()
+    local success, newInventory = pcall(getInventory)
+    if not success or not newInventory then
+        return
+    end
+    
+    for item, quantity in pairs(newInventory) do
+        local newQty = tonumber(quantity) or 0
+        local oldQty = tonumber(oldInventory[item]) or 0
+        
+        if newQty > oldQty then
+            local change = newQty - oldQty
+            pcall(sendWebhook, item, change, newQty, newInventory)
+        end
+    end
+    
+    oldInventory = newInventory
+end
+
+-- Initialize
+oldInventory = getInventory()
+
+-- Main loop
+spawn(function()
+    while true do
+        pcall(checkChanges)
+        wait(2)
+    end
+end)
