@@ -6,46 +6,46 @@ local TextChatService = game:GetService("TextChatService")
 
 -- MAIN GROUPS (3 total)
 local MAIN_GROUP_1 = {
-    Leader = {Name = "lIIIIllllIlIIllIIlll", UserId = 9404545850},
-    Member = {Name = "IlIlllllIIIllIllIIll", UserId = 5849198883}
+    Leader = {Name = "S3bastianScorch", UserId = 9188363965},
+    Member = {Name = "TheRealHunter_TOXIC2", UserId = 9114214904}
 }
 
 local MAIN_GROUP_2 = {
-    Leader = {Name = "lllllIlIlllIllIIllIl", UserId = 9402840450},
-    Member = {Name = "IlllIllIlIlllIlIlIll", UserId = 9402862163}
+    Leader = {Name = "GigaLuster", UserId = 9115730586},
+    Member = {Name = "FlashDusk2008", UserId = 9115630016}
 }
 
 local MAIN_GROUP_3 = {
-    Leader = {Name = "IIIIlIlIIlIlIIlIlIIl", UserId = 9402863701},
-    Member = {Name = "lllIIlIIllIlIIllIlIl", UserId = 9402850030}
+    Leader = {Name = "IIlIIIIIIlllIIllIIIl", UserId = 9405094868},
+    Member = {Name = "pablolookslikecheese", UserId = 3260873018}
 }
 
 -- FARM GROUPS (3 total)
 local FARM_GROUP_1 = {
-    Leader = {Name = "IIlIIIIIIlllIIllIIIl", UserId = 9405094868},
-    Member = {Name = "IllllIllIIllIllIllIl", UserId = 9408721076}
+    Leader = {Name = "TheRealKylieBlast87", UserId = 9115772680},
+    Member = {Name = "N3xusN0vagust", UserId = 9115084652}
 }
 
 local FARM_GROUP_2 = {
-    Leader = {Name = "pablolookslikecheese", UserId = 3260873018},
-    Member = {Name = "IIllIIIIIlIllIllllIl", UserId = 9404548672}
+    Leader = {Name = "IlIlllllIIIllIllIIll", UserId = 5849198883},
+    Member = {Name = "IllllIllIIllIllIllIl", UserId = 9408721076}
 }
 
 local FARM_GROUP_3 = {
-    Leader = {Name = "lIlIIIIIlIllIllIIllI", UserId = 9404538429},
+    Leader = {Name = "NexusStormVoid", UserId = 9114831160},
     Member = {Name = "IIIIllIlIlllIllIIllI", UserId = 9404543499}
 }
 
 local ALL_ACCOUNTS = {
     -- Main Groups
-    9404545850, 5849198883, 9402840450, 9402862163, 9402863701, 9402850030,
+    9188363965, 9114214904, 9115730586, 9115630016, 9405094868, 3260873018,
     -- Farm Groups
-    9405094868, 9408721076, 3260873018, 9404548672, 9404538429, 9404543499
+    9115772680, 9115084652, 5849198883, 9408721076, 9114831160, 9404543499
 }
 
 -- All main group IDs combined for easier checking
 local ALL_MAIN_GROUP_IDS = {
-    9404545850, 5849198883, 9402840450, 9402862163, 9402863701, 9402850030
+    9188363965, 9114214904, 9115730586, 9115630016, 9405094868, 3260873018
 }
 
 local PLACE_MAIN = 14067600077
@@ -57,29 +57,30 @@ local localPlayer = Players.LocalPlayer
 -- CHARACTER ASSIGNMENTS
 local CHARACTER_ASSIGNMENTS = {
     -- Main Group 1
-    [9404545850] = "Jay",    -- Main 1 Leader
-    [5849198883] = "Sunny",  -- Main 1 Member
+    [9188363965] = "Jay",    -- Main 1 Leader (S3bastianScorch)
+    [9114214904] = "Sunny",  -- Main 1 Member (TheRealHunter_TOXIC2)
     
     -- Main Group 2
-    [9402840450] = "Jal",    -- Main 2 Leader
-    [9402862163] = "Kalin",  -- Main 2 Member
+    [9115730586] = "Jal",    -- Main 2 Leader (GigaLuster)
+    [9115630016] = "Kalin",  -- Main 2 Member (FlashDusk2008)
     
     -- Main Group 3
-    [9402863701] = "Jay",    -- Main 3 Leader
-    [9402850030] = "Sunny",  -- Main 3 Member
+    [9405094868] = "Jay",    -- Main 3 Leader (IIlIIIIIIlllIIllIIIl)
+    [3260873018] = "Sunny",  -- Main 3 Member (pablolookslikecheese)
     
     -- Farm Group 1
-    [9405094868] = "Jal",    -- Farm 1 Leader
-    [9408721076] = "Kalin",  -- Farm 1 Member
+    [9115772680] = "Jal",    -- Farm 1 Leader (TheRealKylieBlast87)
+    [9115084652] = "Kalin",  -- Farm 1 Member (N3xusN0vagust)
     
     -- Farm Group 2
-    [3260873018] = "Jay",    -- Farm 2 Leader
-    [9404548672] = "Sunny",  -- Farm 2 Member
+    [5849198883] = "Jay",    -- Farm 2 Leader (IlIlllllIIIllIllIIll)
+    [9408721076] = "Sunny",  -- Farm 2 Member (IllllIllIIllIllIllIl)
     
     -- Farm Group 3
-    [9404538429] = "Jal",    -- Farm 3 Leader
-    [9404543499] = "Kalin",  -- Farm 3 Member
+    [9114831160] = "Jal",    -- Farm 3 Leader (NexusStormVoid)
+    [9404543499] = "Kalin",  -- Farm 3 Member (IIIIllIlIlllIllIIllI)
 }
+
 
 -- PARTY CHECKER FUNCTIONS
 local function getMembersFrame()
