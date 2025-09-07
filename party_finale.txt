@@ -635,8 +635,14 @@ local function runPartyManager()
                     local pureMainVsMain = (bothMainGroupsComplete and farm1Count == 0 and farm2Count == 0)
                     local pureFarmVsFarm = (bothFarmGroupsComplete and main1Count == 0 and main2Count == 0)
                     
-                    -- If we detect a pure matchup, break early
-                    if pureMainVsMain or pureFarmVsFarm then
+                    -- Check for mixed complete matchups (Main vs Farm)
+                    local mixedMainVsFarm = ((main1Count == 4 and farm1Count == 4 and main2Count == 0 and farm2Count == 0) or
+                                            (main1Count == 4 and farm2Count == 4 and main2Count == 0 and farm1Count == 0) or
+                                            (main2Count == 4 and farm1Count == 4 and main1Count == 0 and farm2Count == 0) or
+                                            (main2Count == 4 and farm2Count == 4 and main1Count == 0 and farm1Count == 0))
+                    
+                    -- If we detect a pure matchup or mixed matchup, break early
+                    if pureMainVsMain or pureFarmVsFarm or mixedMainVsFarm then
                         finalGroupsPresent = groupsPresent
                         break
                     end
