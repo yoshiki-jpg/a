@@ -2,7 +2,7 @@ if not game:IsLoaded() then
     repeat task.wait() until game:IsLoaded()
 end
 
--- Simple Inventory Change Scanner with Webhook
+-- Simple Inventory Change Scanner with Webhook (Fixed - No Spam)
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
@@ -21,34 +21,49 @@ local function getUsername()
     return player and player.Name or "Unknown Player"
 end
 
--- Send webhook notification
-local function sendWebhook(item, change, total, fullInventory)
+-- Send webhook notification with ALL changes at once
+local function sendWebhook(allChanges, fullInventory)
     if not httprequest or not webhook then return end
     
     local username = getUsername()
     
+    -- Build changed items list
+    local changedItems = {}
+    local totalNewItems = 0
+    
+    for item, data in pairs(allChanges) do
+        local oldQty = (tonumber(oldInventory[item]) or 0)
+        local newQty = tonumber(data.total) or 0
+        local change = data.change
+        
+        table.insert(changedItems, "**" .. item .. ":** " .. oldQty .. " → " .. newQty .. " (+" .. change .. ")")
+        totalNewItems = totalNewItems + change
+    end
+    
     -- Build full inventory string
     local inventoryList = {}
     for itemName, quantity in pairs(fullInventory) do
-        local oldQty = tonumber(oldInventory[itemName]) or 0
-        local newQty = tonumber(quantity) or 0
-        
-        if itemName == item then
-            -- Highlight the changed item
-            table.insert(inventoryList, "**" .. itemName .. ":** " .. oldQty .. " > " .. newQty)
+        local qty = tonumber(quantity) or 0
+        if allChanges[itemName] then
+            -- Highlight changed items
+            table.insert(inventoryList, "**" .. itemName .. ":** " .. qty)
         else
-            table.insert(inventoryList, itemName .. ": " .. newQty)
+            table.insert(inventoryList, itemName .. ": " .. qty)
         end
     end
     
+    local changedText = table.concat(changedItems, "\n")
     local inventoryText = table.concat(inventoryList, "\n")
-    if inventoryText == "" then
-        inventoryText = "No items in inventory"
-    end
     
-    -- Truncate if too long (Discord embed field limit is 1024 characters)
-    if #inventoryText > 1000 then
-        inventoryText = string.sub(inventoryText, 1, 1000) .. "\n... (truncated)"
+    if changedText == "" then changedText = "No changes" end
+    if inventoryText == "" then inventoryText = "No items in inventory" end
+    
+    -- Truncate if too long (Discord limits)
+    if #changedText > 800 then
+        changedText = string.sub(changedText, 1, 800) .. "\n... (truncated)"
+    end
+    if #inventoryText > 800 then
+        inventoryText = string.sub(inventoryText, 1, 800) .. "\n... (truncated)"
     end
     
     task.spawn(function()
@@ -60,8 +75,8 @@ local function sendWebhook(item, change, total, fullInventory)
                 Body = HttpService:JSONEncode({
                     embeds = {{
                         title = "📦 Inventory Update",
-                        description = "New items detected in inventory!",
-                        color = 65280, -- Green color (0x00FF00)
+                        description = "Detected " .. #changedItems .. " item changes (+' .. totalNewItems .. " total items)",
+                        color = 65280, -- Green color
                         fields = {
                             {
                                 name = "👤 Player",
@@ -69,14 +84,19 @@ local function sendWebhook(item, change, total, fullInventory)
                                 inline = true
                             },
                             {
-                                name = "🎁 Changed Item",
-                                value = "`" .. item .. "`",
+                                name = "📊 Changes",
+                                value = #changedItems .. " items",
                                 inline = true
                             },
                             {
-                                name = "➕ Change",
-                                value = "+" .. change,
+                                name = "➕ Total Added",
+                                value = "+" .. totalNewItems,
                                 inline = true
+                            },
+                            {
+                                name = "📈 Item Changes",
+                                value = changedText,
+                                inline = false
                             },
                             {
                                 name = "📋 Full Inventory",
@@ -86,7 +106,7 @@ local function sendWebhook(item, change, total, fullInventory)
                         },
                         timestamp = os.date("!%Y-%m-%dT%H:%M:%S.000Z"),
                         footer = {
-                            text = "Inventory Scanner"
+                            text = "Inventory Scanner • Anti-Spam Version"
                         }
                     }}
                 })
@@ -107,21 +127,29 @@ local function getInventory()
     return {}
 end
 
--- Check for changes
+-- Check for changes (FIXED - No longer sends webhook for each item!)
 local function checkChanges()
     local success, newInventory = pcall(getInventory)
     if not success or not newInventory then
         return
     end
     
+    local allChanges = {}  -- Collect ALL changes first
+    
+    -- Find all items that increased
     for item, quantity in pairs(newInventory) do
         local newQty = tonumber(quantity) or 0
         local oldQty = tonumber(oldInventory[item]) or 0
         
         if newQty > oldQty then
             local change = newQty - oldQty
-            pcall(sendWebhook, item, change, newQty, newInventory)
+            allChanges[item] = {change = change, total = newQty}
         end
+    end
+    
+    -- Only send ONE webhook if there are ANY changes
+    if next(allChanges) then  -- Check if table has any entries
+        pcall(sendWebhook, allChanges, newInventory)
     end
     
     oldInventory = newInventory
@@ -129,6 +157,7 @@ end
 
 -- Initialize
 oldInventory = getInventory()
+print("Anti-Spam Inventory Scanner started - Will batch all changes into single webhook!")
 
 -- Main loop
 spawn(function()
