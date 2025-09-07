@@ -1,0 +1,610 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local TextChatService = game:GetService("TextChatService")
+
+-- CONFIGURATION
+local MAIN_GROUP_1 = {
+    Leader = {Name = "IIIlllllIlIlIlllllIl", UserId = 9405339756},
+    Members = {
+        {Name = "IlllIlIllIlllIlIllIl", UserId = 9405315646},
+        {Name = "IlIIIlllllIlIlllllII", UserId = 9405319087},
+        {Name = "lIlIIIIlIIlIIIlIlIIl", UserId = 9405327038},
+    }
+}
+local FARM_GROUP_1 = {
+    Leader = {Name = "llIIlIIlIIllIlIllIll", UserId = 9406048015},
+    Members = {
+        {Name = "lIlIlIlllIllIIlllIlI", UserId = 9403250688},
+        {Name = "IIIllIIlIlIllIlIlIII", UserId = 9404912407},
+        {Name = "IlIlIIlIIIIIIllllIll", UserId = 9404913321},
+    }
+}
+local MAIN_GROUP_2 = {
+    Leader = {Name = "IllIlllIIIIIllIIIIll", UserId = 9405342331},
+    Members = {
+        {Name = "IllIlIllIIlIlIIIllll", UserId = 9405323639},
+        {Name = "llllllIIIllllIIIIIlI", UserId = 9406045557},
+        {Name = "IIllllIllIlIllllIIIl", UserId = 9406047042},
+    }
+}
+local FARM_GROUP_2 = {
+    Leader = {Name = "llIlIIIlIIlIIIlIIllI", UserId = 9404900047},
+    Members = {
+        {Name = "IIIIIlIIlIIlIIIlIlIl", UserId = 9404918296},
+        {Name = "lllIIlIlllIIlIIlIIIl", UserId = 9407872016},
+        {Name = "llllllllIIlIIlIIlIll", UserId = 9408703981},
+    }
+}
+local ALL_ACCOUNTS = {
+    -- Main Group 1
+    9405339756, 9405315646, 9405319087, 9405327038,
+    -- Farm Group 1
+    9406048015, 9403250688, 9404912407, 9404913321,
+    -- Main Group 2
+    9405342331, 9405323639, 9406045557, 9406047042,
+    -- Farm Group 2
+    9404900047, 9404918296, 9407872016, 9408703981
+}
+
+local PLACE_MAIN = 14067600077
+local PLACE_MATCH = 18637069183
+local PLACE_CASCADE = 138059541435332
+
+local localPlayer = Players.LocalPlayer
+
+-- GROUP UTILITY FUNCTIONS
+local function getPlayerGroup()
+    -- Main Group 1
+    if localPlayer.UserId == MAIN_GROUP_1.Leader.UserId then return "MAIN_GROUP_1", "LEADER" end
+    for _, member in pairs(MAIN_GROUP_1.Members) do
+        if localPlayer.UserId == member.UserId then return "MAIN_GROUP_1", "MEMBER" end
+    end
+    
+    -- Main Group 2
+    if localPlayer.UserId == MAIN_GROUP_2.Leader.UserId then return "MAIN_GROUP_2", "LEADER" end
+    for _, member in pairs(MAIN_GROUP_2.Members) do
+        if localPlayer.UserId == member.UserId then return "MAIN_GROUP_2", "MEMBER" end
+    end
+    
+    -- Farm Group 1
+    if localPlayer.UserId == FARM_GROUP_1.Leader.UserId then return "FARM_GROUP_1", "LEADER" end
+    for _, member in pairs(FARM_GROUP_1.Members) do
+        if localPlayer.UserId == member.UserId then return "FARM_GROUP_1", "MEMBER" end
+    end
+    
+    -- Farm Group 2
+    if localPlayer.UserId == FARM_GROUP_2.Leader.UserId then return "FARM_GROUP_2", "LEADER" end
+    for _, member in pairs(FARM_GROUP_2.Members) do
+        if localPlayer.UserId == member.UserId then return "FARM_GROUP_2", "MEMBER" end
+    end
+    
+    return nil, nil
+end
+
+local function getGroupByName(groupName)
+    if groupName == "MAIN_GROUP_1" then return MAIN_GROUP_1
+    elseif groupName == "MAIN_GROUP_2" then return MAIN_GROUP_2
+    elseif groupName == "FARM_GROUP_1" then return FARM_GROUP_1
+    elseif groupName == "FARM_GROUP_2" then return FARM_GROUP_2
+    end
+    return nil
+end
+
+local function getGroupsInServer()
+    local groupsPresent = {
+        MAIN_GROUP_1 = {},
+        MAIN_GROUP_2 = {},
+        FARM_GROUP_1 = {},
+        FARM_GROUP_2 = {}
+    }
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        -- Check Main Group 1
+        if player.UserId == MAIN_GROUP_1.Leader.UserId then
+            table.insert(groupsPresent.MAIN_GROUP_1, "LEADER")
+        end
+        for _, member in pairs(MAIN_GROUP_1.Members) do
+            if player.UserId == member.UserId then
+                table.insert(groupsPresent.MAIN_GROUP_1, "MEMBER")
+            end
+        end
+        
+        -- Check Main Group 2
+        if player.UserId == MAIN_GROUP_2.Leader.UserId then
+            table.insert(groupsPresent.MAIN_GROUP_2, "LEADER")
+        end
+        for _, member in pairs(MAIN_GROUP_2.Members) do
+            if player.UserId == member.UserId then
+                table.insert(groupsPresent.MAIN_GROUP_2, "MEMBER")
+            end
+        end
+        
+        -- Check Farm Group 1
+        if player.UserId == FARM_GROUP_1.Leader.UserId then
+            table.insert(groupsPresent.FARM_GROUP_1, "LEADER")
+        end
+        for _, member in pairs(FARM_GROUP_1.Members) do
+            if player.UserId == member.UserId then
+                table.insert(groupsPresent.FARM_GROUP_1, "MEMBER")
+            end
+        end
+        
+        -- Check Farm Group 2
+        if player.UserId == FARM_GROUP_2.Leader.UserId then
+            table.insert(groupsPresent.FARM_GROUP_2, "LEADER")
+        end
+        for _, member in pairs(FARM_GROUP_2.Members) do
+            if player.UserId == member.UserId then
+                table.insert(groupsPresent.FARM_GROUP_2, "MEMBER")
+            end
+        end
+    end
+    
+    return groupsPresent
+end
+
+local function shouldLeaveServer()
+    local groupsPresent = getGroupsInServer()
+    local myGroup, myRole = getPlayerGroup()
+    
+    if not myGroup then return false end
+    
+    -- Count how many groups are present (have at least one member)
+    local presentGroups = {}
+    for groupName, members in pairs(groupsPresent) do
+        if #members > 0 then
+            table.insert(presentGroups, groupName)
+        end
+    end
+    
+    -- If less than 2 groups, don't leave
+    if #presentGroups < 2 then return false end
+    
+    -- Removed the restriction for farm vs farm and main vs main fighting
+    -- Now any groups can fight against each other
+    
+    -- Check if server has only specified accounts and other players
+    local specifiedAccountsInServer = {}
+    local totalPlayersInServer = 0
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        totalPlayersInServer = totalPlayersInServer + 1
+        
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                specifiedAccountsInServer[accountId] = true
+                break
+            end
+        end
+    end
+    
+    local specifiedCount = 0
+    for _ in pairs(specifiedAccountsInServer) do
+        specifiedCount = specifiedCount + 1
+    end
+    
+    -- If server has players that aren't in our account list, leave
+    if specifiedCount < totalPlayersInServer then
+        return true
+    end
+    
+    return false
+end
+
+-- PARTY CHECKER FUNCTIONS
+local function getMembersFrame()
+    local playerGui = localPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return nil end
+    
+    local menu = playerGui:FindFirstChild("Menu")
+    if not menu or menu.ClassName ~= "ScreenGui" then return nil end
+    
+    local main = menu:FindFirstChild("Main")
+    if not main or main.ClassName ~= "CanvasGroup" then return nil end
+    
+    local sidebar = main:FindFirstChild("Sidebar")
+    if not sidebar or sidebar.ClassName ~= "Frame" then return nil end
+    
+    local party = sidebar:FindFirstChild("Party")
+    if not party or party.ClassName ~= "Frame" then return nil end
+    
+    local members = party:FindFirstChild("Members")
+    if not members or members.ClassName ~= "Frame" then return nil end
+    
+    return members
+end
+
+local function getPartyMemberIds()
+    local membersFrame = getMembersFrame()
+    if not membersFrame then return {} end
+    
+    local memberIds = {}
+    for _, child in pairs(membersFrame:GetChildren()) do
+        if child.ClassName == "Frame" then
+            local userId = tonumber(child.Name)
+            if userId then
+                table.insert(memberIds, userId)
+            end
+        end
+    end
+    
+    return memberIds
+end
+
+local function checkGroupMembersInParty(groupMembers)
+    local partyMemberIds = getPartyMemberIds()
+    local partyMemberSet = {}
+    
+    -- Convert party member IDs to set for faster lookup
+    for _, id in pairs(partyMemberIds) do
+        partyMemberSet[id] = true
+    end
+    
+    -- Check if all group members are in party
+    for _, member in pairs(groupMembers) do
+        if not partyMemberSet[member.UserId] then
+            return false
+        end
+    end
+    
+    return true
+end
+
+-- UTILITY FUNCTIONS
+local function SendChatMessage(message)
+    -- Check if the new TextChatService is being used
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        -- Send message using the new TextChatService
+        local textChannel = TextChatService.TextChannels.RBXGeneral
+        textChannel:SendAsync(message)
+    else
+        -- Send message using the default chat system
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+    end
+end
+
+local function waitForGameLoaded()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+end
+
+local function safeTeleport(placeId)
+    local attempts = 0
+    while true do
+        attempts = attempts + 1
+        
+        local success = pcall(function()
+            TeleportService:Teleport(placeId, localPlayer)
+        end)
+        
+        if success then 
+            break 
+        end
+        task.wait(5)
+    end
+end
+
+local function allAccountsInServer()
+    local count = 0
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        for _, accountId in pairs(ALL_ACCOUNTS) do
+            if player.UserId == accountId then
+                count = count + 1
+                break
+            end
+        end
+    end
+    
+    return count == #ALL_ACCOUNTS
+end
+
+local function viableGroupsInServer()
+    local groupsPresent = getGroupsInServer()
+    
+    -- Count complete groups (4 members each)
+    local completeGroups = {}
+    
+    if #groupsPresent.MAIN_GROUP_1 == 4 then
+        table.insert(completeGroups, "MAIN_GROUP_1")
+    end
+    if #groupsPresent.MAIN_GROUP_2 == 4 then
+        table.insert(completeGroups, "MAIN_GROUP_2")
+    end
+    if #groupsPresent.FARM_GROUP_1 == 4 then
+        table.insert(completeGroups, "FARM_GROUP_1")
+    end
+    if #groupsPresent.FARM_GROUP_2 == 4 then
+        table.insert(completeGroups, "FARM_GROUP_2")
+    end
+    
+    -- Now any two complete groups can fight against each other
+    return #completeGroups >= 2
+end
+
+local function isAnyLeaderInServer()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.UserId == MAIN_GROUP_1.Leader.UserId or 
+           player.UserId == MAIN_GROUP_2.Leader.UserId or
+           player.UserId == FARM_GROUP_1.Leader.UserId or 
+           player.UserId == FARM_GROUP_2.Leader.UserId then
+            return true
+        end
+    end
+    return false
+end
+
+local function tryJoinLeaderServer()
+    local myGroup, myRole = getPlayerGroup()
+    
+    -- Leaders don't need to join anyone
+    if myRole == "LEADER" then return end
+    
+    -- Only group members should try to join leaders
+    if not myGroup then return end
+    
+    -- Check if any leader is in server, if not wait 15 seconds and check again
+    if not isAnyLeaderInServer() then
+        task.wait(15)
+        -- Removed chat commands - members will just wait for leaders
+    end
+end
+
+local function waitForRemotesReady()
+    local ready = false
+    local attempts = 0
+    while not ready and attempts < 60 do
+        attempts = attempts + 1
+        
+        ready = pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes", 1)
+            ReplicatedStorage.Remotes:WaitForChild("Team", 1)
+            return true
+        end)
+        
+        if not ready then 
+            task.wait(1) 
+        end
+    end
+    
+    return ready
+end
+
+-- PARTY LEAVE FUNCTION
+local function leaveParty()
+    local success = pcall(function()
+        local args = {"Leave"}
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Team"):FireServer(unpack(args))
+    end)
+end
+
+local function leavePartyIfInOne()
+    -- Wait a bit for remotes to be ready
+    local remotesReady = waitForRemotesReady()
+    if not remotesReady then
+        return
+    end
+    
+    -- Check if we're in a party by trying to get party member IDs
+    local partyMemberIds = getPartyMemberIds()
+    if #partyMemberIds > 1 then -- More than just ourselves means we're in a party
+        leaveParty()
+        task.wait(2) -- Wait for leave to process
+    end
+end
+
+local function inviteAndWaitForMembers()
+    local myGroup, myRole = getPlayerGroup()
+    
+    if myRole ~= "LEADER" then return false end
+    
+    local groupData = getGroupByName(myGroup)
+    if not groupData then return false end
+    
+    -- Check if party is already complete
+    if checkGroupMembersInParty(groupData.Members) then
+        task.wait(2)
+        return true
+    end
+    
+    local inviteAttempts = 0
+    local maxInviteAttempts = 20
+    
+    -- Send initial invites to group members
+    for _, member in pairs(groupData.Members) do
+        pcall(function()
+            local targetPlayer = Players:FindFirstChild(member.Name)
+            if targetPlayer then
+                local args = {"Invite", targetPlayer}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end
+        end)
+    end
+    inviteAttempts = inviteAttempts + 1
+    
+    -- Keep inviting every 3 seconds up to 20 attempts
+    while inviteAttempts < maxInviteAttempts do
+        task.wait(3)
+        
+        if checkGroupMembersInParty(groupData.Members) then
+            task.wait(1)
+            return true
+        end
+        
+        -- Send invites again
+        for _, member in pairs(groupData.Members) do
+            pcall(function()
+                local targetPlayer = Players:FindFirstChild(member.Name)
+                if targetPlayer then
+                    local args = {"Invite", targetPlayer}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end
+            end)
+        end
+        inviteAttempts = inviteAttempts + 1
+    end
+    
+    return false -- Max attempts reached
+end
+
+local function acceptInvites()
+    local myGroup, myRole = getPlayerGroup()
+    
+    if myRole ~= "MEMBER" then return end
+    
+    local groupData = getGroupByName(myGroup)
+    if not groupData then return end
+    
+    local leaderName = groupData.Leader.Name
+    local maxAcceptAttempts = 20
+    
+    for i = 1, maxAcceptAttempts do
+        pcall(function()
+            local leaderPlayer = Players:FindFirstChild(leaderName)
+            if leaderPlayer then
+                local args = {"AcceptInvite", leaderPlayer}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end
+        end)
+        
+        -- Wait 3 seconds between attempts, except after the last attempt
+        if i < maxAcceptAttempts then
+            task.wait(3)
+        end
+    end
+end
+
+local function startQueue()
+    local myGroup, myRole = getPlayerGroup()
+    
+    if myRole == "LEADER" then
+        for attempt = 1, 8 do
+            pcall(function()
+                local args = {"JoinQueue", "CASCADE"}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end)
+            
+            if attempt < 8 then
+                task.wait(2)
+            end
+        end
+        
+        task.wait(5)
+        
+        if game.PlaceId == PLACE_MATCH then
+            for attempt = 1, 4 do
+                pcall(function()
+                    local args = {"JoinQueue", "CASCADE"}
+                    ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+                end)
+                task.wait(3)
+            end
+        end
+        
+    elseif myRole == "MEMBER" then
+        task.wait(2)
+        for attempt = 1, 8 do
+            pcall(function()
+                local args = {"JoinQueue", "CASCADE"}
+                ReplicatedStorage.Remotes.Team:FireServer(unpack(args))
+            end)
+            if attempt < 8 then
+                task.wait(2)
+            end
+        end
+    end
+end
+
+-- MAIN EXECUTION
+local function runPartyManager()
+    waitForGameLoaded()
+    
+    -- Leave any existing party at startup
+    if game.PlaceId == PLACE_MATCH then
+        leavePartyIfInOne()
+    end
+    
+    local matchStartTime = tick()
+    
+    while true do
+        if game.PlaceId == PLACE_MAIN then
+            safeTeleport(PLACE_MATCH)
+            matchStartTime = tick() -- Reset timer on place change
+            
+        elseif game.PlaceId == PLACE_MATCH then
+            -- Check if no leader is in server and try to join one with retry logic
+            tryJoinLeaderServer()
+            
+            -- Wait for all accounts to be in server, with timeout
+            local waitingForAccounts = true
+            while waitingForAccounts do
+                local elapsed = tick() - matchStartTime
+                
+                if elapsed > 300 then
+                    safeTeleport(PLACE_MAIN)
+                    matchStartTime = tick()
+                    break
+                end
+                
+                if allAccountsInServer() or viableGroupsInServer() then
+                    waitingForAccounts = false
+                    local remotesReady = waitForRemotesReady()
+                    
+                    if remotesReady then
+                        task.wait(3)
+                        
+                        local myGroup, myRole = getPlayerGroup()
+                        
+                        -- For leaders: invite and wait for members to join party
+                        if myRole == "LEADER" then
+                            local partyReady = inviteAndWaitForMembers()
+                            if partyReady then
+                                startQueue()
+                                task.wait(10)
+                            end
+                        else
+                            -- For members: accept invites
+                            acceptInvites()
+                            startQueue()
+                            task.wait(10)
+                        end
+                    end
+                else
+                    task.wait(15)
+                end
+            end
+            
+        elseif game.PlaceId == PLACE_CASCADE then
+            -- Check if we should leave the server
+            if shouldLeaveServer() then
+                safeTeleport(PLACE_MATCH)
+                matchStartTime = tick()
+            else
+                -- Original logic for staying/leaving based on group type
+                task.wait(3)
+                
+                local myGroup, myRole = getPlayerGroup()
+                
+                if myGroup == "FARM_GROUP_1" or myGroup == "FARM_GROUP_2" then
+                    safeTeleport(PLACE_MATCH)
+                    matchStartTime = tick()
+                end
+                
+                task.wait(40)
+                
+                if myGroup == "MAIN_GROUP_1" or myGroup == "MAIN_GROUP_2" then
+                    safeTeleport(PLACE_MATCH)
+                    matchStartTime = tick()
+                end
+            end
+        end
+        
+        task.wait(1)
+    end
+end
+
+-- START SCRIPT
+spawn(runPartyManager)
