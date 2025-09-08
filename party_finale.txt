@@ -326,23 +326,24 @@ local function viableGroupsInServer()
     local groupsPresent = getGroupsInServer()
     
     -- Count complete groups (4 members each)
-    local completeGroups = {}
+    local completeMainGroups = 0
+    local completeFarmGroups = 0
     
     if #groupsPresent.MAIN_GROUP_1 == 4 then
-        table.insert(completeGroups, "MAIN_GROUP_1")
+        completeMainGroups = completeMainGroups + 1
     end
     if #groupsPresent.MAIN_GROUP_2 == 4 then
-        table.insert(completeGroups, "MAIN_GROUP_2")
+        completeMainGroups = completeMainGroups + 1
     end
     if #groupsPresent.FARM_GROUP_1 == 4 then
-        table.insert(completeGroups, "FARM_GROUP_1")
+        completeFarmGroups = completeFarmGroups + 1
     end
     if #groupsPresent.FARM_GROUP_2 == 4 then
-        table.insert(completeGroups, "FARM_GROUP_2")
+        completeFarmGroups = completeFarmGroups + 1
     end
     
-    -- Any two complete groups can fight against each other
-    return #completeGroups >= 2
+    -- Need at least one complete main group AND one complete farm group
+    return completeMainGroups >= 1 and completeFarmGroups >= 1
 end
 
 local function isAnyLeaderInServer()
