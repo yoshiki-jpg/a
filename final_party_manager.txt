@@ -27,7 +27,7 @@ local FARM_GROUP_1 = {
 }
 
 local FARM_GROUP_2 = {
-    Leader = {Name = "IlIlllllIIIllIllIIll", UserId = 5849198883},
+    Leader = {Name = "EliDoris10", UserId = 9297758050},
     Member = {Name = "IllllIllIIllIllIllIl", UserId = 9408721076}
 }
 
@@ -40,7 +40,7 @@ local ALL_ACCOUNTS = {
     -- Main Groups
     9188363965, 9114214904, 9115730586, 9115630016, 9405094868, 3260873018,
     -- Farm Groups
-    9115772680, 9115084652, 5849198883, 9408721076, 9114831160, 9404543499
+    9115772680, 9115084652, 5849198883, 9297758050, 9114831160, 9404543499
 }
 
 -- All main group IDs combined for easier checking
@@ -74,7 +74,7 @@ local CHARACTER_ASSIGNMENTS = {
     
     -- Farm Group 2
     [5849198883] = "Jay",    -- Farm 2 Leader (IlIlllllIIIllIllIIll)
-    [9408721076] = "Sunny",  -- Farm 2 Member (IllllIllIIllIllIllIl)
+    [9297758050] = "Sunny",  -- Farm 2 Member (IllllIllIIllIllIllIl)
     
     -- Farm Group 3
     [9114831160] = "Jal",    -- Farm 3 Leader (NexusStormVoid)
