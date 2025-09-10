@@ -9,12 +9,10 @@ local MAIN_GROUP_1 = {
     Leader = {Name = "S3bastianScorch", UserId = 9188363965},
     Member = {Name = "TheRealHunter_TOXIC2", UserId = 9114214904}
 }
-
 local MAIN_GROUP_2 = {
     Leader = {Name = "GigaLuster", UserId = 9115730586},
     Member = {Name = "FlashDusk2008", UserId = 9115630016}
 }
-
 local MAIN_GROUP_3 = {
     Leader = {Name = "IIlIIIIIIlllIIllIIIl", UserId = 9405094868},
     Member = {Name = "pablolookslikecheese", UserId = 3260873018}
@@ -25,12 +23,10 @@ local FARM_GROUP_1 = {
     Leader = {Name = "TheRealKylieBlast87", UserId = 9115772680},
     Member = {Name = "N3xusN0vagust", UserId = 9115084652}
 }
-
 local FARM_GROUP_2 = {
     Leader = {Name = "EliDoris10", UserId = 9297758050},
     Member = {Name = "IllllIllIIllIllIllIl", UserId = 9408721076}
 }
-
 local FARM_GROUP_3 = {
     Leader = {Name = "NexusStormVoid", UserId = 9114831160},
     Member = {Name = "IIIIllIlIlllIllIIllI", UserId = 9404543499}
@@ -40,7 +36,7 @@ local ALL_ACCOUNTS = {
     -- Main Groups
     9188363965, 9114214904, 9115730586, 9115630016, 9405094868, 3260873018,
     -- Farm Groups
-    9115772680, 9115084652, 5849198883, 9297758050, 9114831160, 9404543499
+    9115772680, 9115084652, 9297758050, 9408721076, 9114831160, 9404543499
 }
 
 -- All main group IDs combined for easier checking
@@ -51,7 +47,6 @@ local ALL_MAIN_GROUP_IDS = {
 local PLACE_MAIN = 14067600077
 local PLACE_MATCH = 18637069183
 local PLACE_SOULWARS = 116052447681870
-
 local localPlayer = Players.LocalPlayer
 
 -- CHARACTER ASSIGNMENTS
@@ -73,8 +68,8 @@ local CHARACTER_ASSIGNMENTS = {
     [9115084652] = "Kalin",  -- Farm 1 Member (N3xusN0vagust)
     
     -- Farm Group 2
-    [5849198883] = "Jay",    -- Farm 2 Leader (IlIlllllIIIllIllIIll)
-    [9297758050] = "Sunny",  -- Farm 2 Member (IllllIllIIllIllIllIl)
+    [9297758050] = "Jay",    -- Farm 2 Leader (EliDoris10)
+    [9408721076] = "Sunny",  -- Farm 2 Member (IllllIllIIllIllIllIl)
     
     -- Farm Group 3
     [9114831160] = "Jal",    -- Farm 3 Leader (NexusStormVoid)
