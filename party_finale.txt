@@ -35,9 +35,9 @@ local MAIN_GROUP_2 = {
 local FARM_GROUP_2 = {
     Leader = {Name = "TheRealjumpyPixel202", UserId = 9114706139},
     Members = {
+        {Name = "Sam_Yarn2019", UserId = 9115616749},
+        {Name = "ItsTylerWobble2010", UserId = 9115775058},
         {Name = "IIIIIlIIlIIlIIIlIlIl", UserId = 9404918296},
-        {Name = "lllIIlIlllIIlIIlIIIl", UserId = 9407872016},
-        {Name = "llllllllIIlIIlIIlIll", UserId = 9408703981},
     }
 }
 
@@ -49,7 +49,7 @@ local ALL_ACCOUNTS = {
     -- Main Group 2
     9405342331, 9405323639, 9406045557, 9406047042,
     -- Farm Group 2
-    9114706139, 9404918296, 9407872016, 9408703981
+    9114706139, 9115616749, 9115775058, 9404918296
 }
 
 local PLACE_MAIN = 14067600077
