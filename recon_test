@@ -37,16 +37,6 @@ local function hasWrongPlayers()
     return false
 end
 
-local function teleportLocalPlayer(targetPlaceId)
-    local localPlayer = Players.LocalPlayer
-    
-    if localPlayer and isSpecifiedAccount(localPlayer.UserId) then
-        pcall(function()
-            TeleportService:TeleportAsync(targetPlaceId, {localPlayer})
-        end)
-    end
-end
-
 -- MONITORING FUNCTION
 local function monitorServer()
     while true do
@@ -75,8 +65,8 @@ if game.PlaceId == PLACE_CASCADE and hasWrongPlayers() then
 end
 
 if game.PlaceId == PLACE_HUEDO then
-    teleportLocalPlayer(PLACE_MAIN)
+    task.wait(5)
+    TeleportService:Teleport(PLACE_MAIN, Players.LocalPlayer)
 end
-
 -- START MONITORING
 spawn(monitorServer)
