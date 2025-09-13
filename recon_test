@@ -64,7 +64,7 @@ if game.PlaceId == PLACE_CASCADE and hasWrongPlayers() then
     game:Shutdown()
 end
 
-if game.PlaceId == PLACE_HUEDO then
+if game.PlaceId == PLACE_HUECO then
     task.wait(5)
     TeleportService:Teleport(PLACE_MAIN, Players.LocalPlayer)
 end
